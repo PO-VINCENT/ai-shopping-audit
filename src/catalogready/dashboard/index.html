@@ -11,57 +11,59 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">CR</span>
-      <span><strong>CatalogReady</strong><small>Is your product page readable by AI shopping agents?</small></span>
+      <span><strong>CatalogReady</strong><small data-i18n="tagline"></small></span>
     </div>
-    <div class="badges">Offline · deterministic · no API key · no storefront writes</div>
+    <div class="topbar-side">
+      <span class="badges" data-i18n="badges"></span>
+      <select id="lang" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
   </header>
 
   <main class="layout">
     <section class="input-card">
-      <h2>Product page</h2>
-      <label>URL
+      <h2 data-i18n="inputTitle"></h2>
+      <label><span data-i18n="urlLabel"></span>
         <span class="url-row">
           <input id="url" type="url" placeholder="https://store.example/products/item" spellcheck="false">
-          <button class="secondary" id="fetch" type="button"
-            title="The local server fetches this one page (a single request)">Fetch</button>
+          <button class="secondary" id="fetch" type="button" data-i18n="fetch" data-i18n-title="fetchTitle"></button>
         </span>
       </label>
-      <label>Page HTML
-        <textarea id="html" rows="9" spellcheck="false"
-          placeholder="Left empty? Audit fetches the page for you (one request via the local server). Or paste the rendered HTML to stay fully offline."></textarea>
+      <label><span data-i18n="htmlLabel"></span>
+        <textarea id="html" rows="9" spellcheck="false" data-i18n-placeholder="htmlPlaceholder"></textarea>
       </label>
       <div class="demo-row">
-        <button class="link" id="demo-good" type="button">Load good demo (97/100)</button>
-        <button class="link" id="demo-bad" type="button">Load bad demo (16/100)</button>
+        <button class="link" id="demo-good" type="button" data-i18n="demoGood"></button>
+        <button class="link" id="demo-bad" type="button" data-i18n="demoBad"></button>
       </div>
       <details>
-        <summary>Model provider (optional)</summary>
+        <summary data-i18n="providerSummary"></summary>
         <div class="provider-grid">
-          <label>Provider
+          <label><span data-i18n="providerLabel"></span>
             <select id="provider">
-              <option value="deterministic">Offline / deterministic</option>
+              <option value="deterministic" data-i18n="providerOffline"></option>
               <option value="openai">OpenAI</option>
               <option value="gemini">Gemini</option>
               <option value="anthropic">Claude</option>
               <option value="deepseek">DeepSeek</option>
             </select>
           </label>
-          <label>Model ID
-            <input id="model" type="text" placeholder="Server default" spellcheck="false">
+          <label><span data-i18n="modelLabel"></span>
+            <input id="model" type="text" data-i18n-placeholder="modelPlaceholder" spellcheck="false">
           </label>
         </div>
-        <p class="note">Keys stay in the local server environment. This page never asks for or stores them.</p>
+        <p class="note" data-i18n="providerNote"></p>
       </details>
-      <button class="primary" id="run" type="button">Audit page</button>
+      <button class="primary" id="run" type="button" data-i18n="audit"></button>
       <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
 
     <section class="results">
       <div id="empty" class="empty">
-        <h2>Your audit appears here</h2>
-        <p>Load a demo or paste a product page, then press <strong>Audit page</strong>.
-        You get a 0–100 readiness score, findings with rule IDs, the questions only
-        the merchant can answer, and evidence-backed fixes.</p>
+        <h2 data-i18n="emptyTitle"></h2>
+        <p data-i18n="emptyBody"></p>
       </div>
 
       <div id="result" hidden>
@@ -71,9 +73,7 @@
             <h2 id="product-title"></h2>
             <p id="product-url" class="muted"></p>
             <div id="pillars" class="pillars"></div>
-            <p class="note score-note">Six pillars sum to 100; blocking defects cap the
-            total. Status is <strong>ready</strong> only at 80+ with no cap.
-            Click a pillar to see exactly what it checks.</p>
+            <p class="note score-note" data-i18n="scoreNote"></p>
           </div>
         </div>
         <div id="caps"></div>
@@ -83,30 +83,29 @@
         <div class="trace-wrap"><div id="trace" class="trace"></div></div>
 
         <nav class="tabs" role="tablist">
-          <button class="tab is-active" data-tab="findings" type="button">Findings <span id="findings-count" class="count"></span></button>
-          <button class="tab" data-tab="questions" type="button">Merchant questions <span id="questions-count" class="count"></span></button>
-          <button class="tab" data-tab="fixes" type="button">Fixes</button>
-          <button class="tab" data-tab="evidence" type="button">Evidence</button>
+          <button class="tab is-active" data-tab="findings" type="button"><span data-i18n="tabFindings"></span> <span id="findings-count" class="count"></span></button>
+          <button class="tab" data-tab="questions" type="button"><span data-i18n="tabQuestions"></span> <span id="questions-count" class="count"></span></button>
+          <button class="tab" data-tab="fixes" type="button"><span data-i18n="tabFixes"></span></button>
+          <button class="tab" data-tab="evidence" type="button"><span data-i18n="tabEvidence"></span></button>
         </nav>
 
         <section id="panel-findings" class="panel"></section>
 
         <section id="panel-questions" class="panel" hidden>
-          <p class="note">CatalogReady never invents these facts. Supply verified values and re-run.</p>
+          <p class="note" data-i18n="questionsNote"></p>
           <div id="questions"></div>
-          <button class="primary" id="resume" type="button" hidden>Re-run with answers</button>
+          <button class="primary" id="resume" type="button" hidden data-i18n="resume"></button>
         </section>
 
         <section id="panel-fixes" class="panel" hidden>
-          <p class="note">Draft mode builds reversible changes from verified evidence only and
-          validates them against an isolated in-memory preview. Nothing is written to a storefront.</p>
-          <button class="primary" id="draft" type="button">Draft evidence-backed fixes</button>
+          <p class="note" data-i18n="fixesNote"></p>
+          <button class="primary" id="draft" type="button" data-i18n="draft"></button>
           <div id="changes"></div>
           <div id="validation"></div>
           <div id="jsonld-wrap" hidden>
             <div class="row-between">
-              <h3>Recommended Product JSON-LD</h3>
-              <button class="secondary" id="copy-jsonld" type="button">Copy</button>
+              <h3 data-i18n="jsonldTitle"></h3>
+              <button class="secondary" id="copy-jsonld" type="button" data-i18n="copy"></button>
             </div>
             <pre id="jsonld"></pre>
           </div>
@@ -114,35 +113,37 @@
 
         <section id="panel-evidence" class="panel" hidden>
           <table>
-            <thead><tr><th>ID</th><th>Field</th><th>Value</th><th>Source</th></tr></thead>
+            <thead><tr>
+              <th data-i18n="evId"></th><th data-i18n="evField"></th>
+              <th data-i18n="evValue"></th><th data-i18n="evSource"></th>
+            </tr></thead>
             <tbody id="evidence"></tbody>
           </table>
         </section>
 
         <section class="chat-card">
-          <h3>Ask the agent</h3>
+          <h3 data-i18n="chatTitle"></h3>
           <div id="chat-log" class="chat-log" aria-live="polite"></div>
           <div class="chat-row">
-            <input id="chat-input" type="text" spellcheck="false"
-              placeholder="e.g. why is structured data low? · what should I fix first?">
-            <button class="secondary" id="chat-send" type="button">Ask</button>
+            <input id="chat-input" type="text" spellcheck="false" data-i18n-placeholder="chatPlaceholder">
+            <button class="secondary" id="chat-send" type="button" data-i18n="ask"></button>
           </div>
-          <p class="note">Answers come from the audit result only. Select a model provider
-          above for open-ended questions; otherwise answers are deterministic.</p>
+          <p class="note" data-i18n="chatNote"></p>
         </section>
 
         <div class="actions">
-          <button class="secondary" id="download-report" type="button">Download HTML report</button>
-          <button class="secondary" id="download-json" type="button">Download JSON</button>
+          <button class="secondary" id="download-report" type="button" data-i18n="downloadReport"></button>
+          <button class="secondary" id="download-json" type="button" data-i18n="downloadJson"></button>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    <span>CatalogReady · evidence-grounded product audits</span>
-    <span>A readiness score is never a ranking or citation guarantee.</span>
+    <span data-i18n="footerLeft"></span>
+    <span data-i18n="footerRight"></span>
   </footer>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

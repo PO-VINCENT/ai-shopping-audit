@@ -150,8 +150,9 @@ to stay fully offline.
 Every audit produces a plain-language summary conclusion, auto-drafted fix
 suggestions with an isolated preview validation, expandable per-pillar score
 explanations, inline merchant questions, a paste-ready JSON-LD patch, an
-"Ask the agent" chat window, and a downloadable HTML report. Everything runs
-locally; the page never asks for API keys.
+"Ask the agent" chat window, and a downloadable HTML report. The UI follows
+your browser language (English / 中文, switchable in the header). Everything
+runs locally; the page never asks for API keys.
 
 ## Use it from an AI agent (MCP)
 

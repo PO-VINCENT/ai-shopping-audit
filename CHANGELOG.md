@@ -4,6 +4,13 @@
 
 ### Added
 
+- The dashboard is multilingual: the UI language follows the browser
+  language automatically (English and 简体中文 to start), with a header
+  selector that persists the choice. All UI chrome, pillar names and
+  explanations, check labels, summary verdicts, and status messages are
+  localized in dashboard/i18n.js; engine-generated findings and
+  recommendations remain English. Adding a language is one dictionary
+  entry, enforced by a key-coverage test.
 - Nine new deterministic page rules, implemented from the sourced candidate
   list in docs/RULES.md: GEO-OFFER-002 (price must exceed zero; fails the
   offer pillar checks), GEO-OFFER-003 (markup price visible in page text),

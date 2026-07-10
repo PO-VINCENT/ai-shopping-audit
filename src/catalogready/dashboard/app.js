@@ -1,52 +1,8 @@
 "use strict";
 
 /* CatalogReady dashboard — same-origin client for the local server API.
-   All capability lives in the service; this file only renders results. */
-
-const PILLAR_LABELS = {
-  product_identity: "Product identity",
-  offer_completeness: "Offer completeness",
-  structured_data: "Structured data",
-  decision_evidence: "Decision evidence",
-  media_variants: "Media & variants",
-  claim_grounding: "Claim grounding",
-};
-
-const PILLAR_EXPLAIN = {
-  product_identity:
-    "Can an AI agent tell exactly which product this is? Checks the title, brand, " +
-    "category, a stable identifier (SKU, GTIN, or MPN), and a canonical URL.",
-  offer_completeness:
-    "Can an agent quote this offer? Price, currency, and availability must exist as " +
-    "evidence and be machine-readable together in the Offer markup.",
-  structured_data:
-    "Is there valid Product JSON-LD that matches the visible page? This is the " +
-    "primary surface shopping agents parse; missing Product data caps the total at 74.",
-  decision_evidence:
-    "Is there enough verified substance to answer buyer questions: a description, " +
-    "specifications, substantive visible text, and on-page shipping/returns/care facts?",
-  media_variants:
-    "Can an agent show and distinguish the product: a primary image, multiple images, " +
-    "variant attributes (color/size), and a variant-level identifier.",
-  claim_grounding:
-    "Do marketing claims in the title and description have supporting evidence on the " +
-    "page? Unsupported superlative, proof, warranty, or performance claims deduct " +
-    "points, and a high-risk one caps the total at 49.",
-};
-
-const CHECK_LABELS = {
-  stable_identifier: "stable identifier (SKU / GTIN / MPN)",
-  complete_offer_markup: "price + currency + availability together in Offer markup",
-  product_node: "Product JSON-LD node present",
-  valid_json_ld: "all JSON-LD blocks parse",
-  substantive_page: "at least 120 words of visible text",
-  evidence_topics: "3+ evidence topics (shipping, returns, care…)",
-  review_evidence: "aggregate rating with review count",
-  variant_attribute: "variant attribute (color / size / pattern)",
-  variant_identity: "variant-level identifier",
-  no_high_risk_claims: "no unsupported high-risk claims",
-  no_unsupported_claims: "no unsupported claims at all",
-};
+   All capability lives in the service; this file only renders results.
+   UI strings come from i18n.js (browser-language default, header override). */
 
 const DEMO_GOOD_URL = "https://example.com/products/cr-001";
 const DEMO_GOOD_HTML = `<!doctype html>
@@ -141,7 +97,33 @@ async function api(path, body) {
   return payload;
 }
 
-/* ---------- agent runs ---------- */
+/* ---------- fetch & agent runs ---------- */
+
+async function fetchHtml() {
+  const url = el("url").value.trim();
+  if (!url) {
+    setStatus(i18n.t("statusEnterUrl"), true);
+    return false;
+  }
+  const button = el("fetch");
+  button.disabled = true;
+  setStatus(i18n.t("statusFetching"));
+  try {
+    const payload = await api("/v1/fetch", { url });
+    el("html").value = payload.html;
+    if (/pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i.test(payload.html)) {
+      setStatus(i18n.t("statusBotWall"), true);
+      return true; // still auditable — it shows what a generic crawler would see
+    }
+    setStatus(i18n.t("statusFetched", Math.round(payload.bytes / 1024)));
+    return true;
+  } catch (error) {
+    setStatus(error.message, true);
+    return false;
+  } finally {
+    button.disabled = false;
+  }
+}
 
 function runOptions(mode) {
   const options = {
@@ -155,46 +137,16 @@ function runOptions(mode) {
   return options;
 }
 
-async function fetchHtml() {
-  const url = el("url").value.trim();
-  if (!url) {
-    setStatus("Enter a product URL to fetch.", true);
-    return false;
-  }
-  const button = el("fetch");
-  button.disabled = true;
-  setStatus("Fetching the page (one request via the local server)…");
-  try {
-    const payload = await api("/v1/fetch", { url });
-    el("html").value = payload.html;
-    if (/pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i.test(payload.html)) {
-      setStatus(
-        "The site served a bot-protection page instead of the product. " +
-        "Paste the page HTML from your browser (view-source) or use the extension.",
-        true
-      );
-      return true; // still auditable — it shows what a generic crawler would see
-    }
-    setStatus(`Fetched ${Math.round(payload.bytes / 1024)} KB. Ready to audit.`);
-    return true;
-  } catch (error) {
-    setStatus(error.message, true);
-    return false;
-  } finally {
-    button.disabled = false;
-  }
-}
-
 async function runAgent(mode) {
   const url = el("url").value.trim();
   if (!url) {
-    setStatus("Provide a product URL (or load a demo).", true);
+    setStatus(i18n.t("statusNeedUrl"), true);
     return;
   }
   if (!el("html").value.trim() && !(await fetchHtml())) return;
   const button = el("run");
   button.disabled = true;
-  setStatus(mode === "draft" ? "Drafting evidence-backed fixes…" : "Auditing locally…");
+  setStatus(mode === "draft" ? i18n.t("statusDrafting") : i18n.t("statusAuditing"));
   try {
     const result = await api("/v1/agent/html", runOptions(mode));
     if (mode === "draft") {
@@ -243,11 +195,9 @@ function renderDial(score) {
     `<text x="66" y="86" text-anchor="middle" font-size="12" opacity="0.7">/ 100</text>`;
 }
 
-function checkLabel(key) {
-  return CHECK_LABELS[key] || key.replace(/_/g, " ");
-}
-
 function renderPillars(components) {
+  const labels = i18n.pillars();
+  const explain = i18n.pillarExplain();
   el("pillars").innerHTML = Object.entries(components)
     .map(([key, section]) => {
       const max = section.max_score || 1;
@@ -256,18 +206,17 @@ function renderPillars(components) {
         .map(
           ([check, passed]) =>
             `<li class="${passed ? "pass" : "fail"}">` +
-            `<span aria-hidden="true">${passed ? "✓" : "✗"}</span> ${escapeHtml(checkLabel(check))}</li>`
+            `<span aria-hidden="true">${passed ? "✓" : "✗"}</span> ${escapeHtml(i18n.checkLabel(check))}</li>`
         )
         .join("");
       return (
         `<div class="pillar-group">` +
-        `<button class="pillar" type="button" data-pillar="${escapeHtml(key)}" aria-expanded="false"` +
-        ` title="Click to see what this pillar checks">` +
-        `<span><span class="chev" aria-hidden="true">▸</span>${escapeHtml(PILLAR_LABELS[key] || key)}</span>` +
+        `<button class="pillar" type="button" data-pillar="${escapeHtml(key)}" aria-expanded="false">` +
+        `<span><span class="chev" aria-hidden="true">▸</span>${escapeHtml(labels[key] || key)}</span>` +
         `<span class="bar"><i style="width:${Math.round(ratio * 100)}%;background:${scoreColor(ratio)}"></i></span>` +
         `<span>${section.score}/${max}</span></button>` +
         `<div class="pillar-detail" hidden>` +
-        `<p>${escapeHtml(PILLAR_EXPLAIN[key] || "")}</p>` +
+        `<p>${escapeHtml(explain[key] || "")}</p>` +
         `<ul class="checks">${checks}</ul>` +
         `</div></div>`
       );
@@ -278,7 +227,7 @@ function renderPillars(components) {
 function renderCaps(readiness) {
   const reasons = readiness.cap_reasons || [];
   el("caps").innerHTML = reasons.length
-    ? `<div class="cap"><strong>Score capped at ${readiness.safety_cap}.</strong> ` +
+    ? `<div class="cap"><strong>${escapeHtml(i18n.t("capBanner", readiness.safety_cap))}</strong> ` +
       reasons.map(escapeHtml).join(" ") + `</div>`
     : "";
 }
@@ -301,7 +250,7 @@ function renderFindings(findings) {
             `<p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
         )
         .join("")
-    : "<p>No findings. Everything checked is machine-readable.</p>";
+    : `<p>${escapeHtml(i18n.t("noFindings"))}</p>`;
   el("findings-count").textContent = String(sorted.length);
 }
 
@@ -312,34 +261,38 @@ function renderQuestions(questions) {
         .map(
           (item, index) =>
             `<div class="question"><div class="q">` +
-            (item.blocking ? `<span class="blocking-tag">blocking</span>` : "") +
+            (item.blocking ? `<span class="blocking-tag">${escapeHtml(i18n.t("blocking"))}</span>` : "") +
             `${escapeHtml(item.question)}</div>` +
             `<div class="why">${escapeHtml(item.reason)}</div>` +
             `<input data-field="${escapeHtml(item.field)}" data-question="${index}" type="text"` +
-            ` placeholder="Verified ${escapeHtml(item.field)}" value="${escapeHtml(state.answers[item.field] || "")}"></div>`
+            ` placeholder="${escapeHtml(i18n.t("answerPlaceholder", item.field))}" value="${escapeHtml(state.answers[item.field] || "")}"></div>`
         )
         .join("")
-    : "<p>No open merchant questions.</p>";
+    : `<p>${escapeHtml(i18n.t("noQuestions"))}</p>`;
   el("resume").hidden = !questions.length;
   el("questions-count").textContent = String(questions.length);
 }
 
 function renderFixes(result) {
   const changes = result.proposed_changes || [];
-  el("changes").innerHTML = changes
-    .map(
-      (item) =>
-        `<div class="change"><strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.operation)}` +
-        ` <span class="muted">(reversible, ${escapeHtml(item.status)})</span></div>`
-    )
-    .join("");
+  el("changes").innerHTML = changes.length
+    ? `<p class="note">${escapeHtml(i18n.t("proposedChanges", changes.length))}</p>` +
+      changes
+        .map(
+          (item) =>
+            `<div class="change"><strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.operation)}` +
+            ` <span class="muted">(${escapeHtml(i18n.t("reversible"))}, ${escapeHtml(item.status)})</span></div>`
+        )
+        .join("")
+    : "";
   const validation = result.validation || {};
   if (validation.after_score != null && changes.length) {
     const delta = validation.score_delta || 0;
+    const deltaText = `${delta >= 0 ? "+" : ""}${delta}`;
     el("validation").innerHTML =
-      `<div class="delta${delta < 0 ? " negative" : ""}">Isolated preview validation: ` +
-      `${validation.before_score} → ${validation.after_score} (${delta >= 0 ? "+" : ""}${delta}), ` +
-      `status ${escapeHtml(validation.status)}. Nothing was written to any storefront.</div>`;
+      `<div class="delta${delta < 0 ? " negative" : ""}">` +
+      escapeHtml(i18n.t("validationLine", validation.before_score, validation.after_score, deltaText, validation.status)) +
+      `</div>`;
   } else {
     el("validation").innerHTML = "";
   }
@@ -360,40 +313,46 @@ function renderSummary() {
 
   let verdict;
   if (score >= 80 && (readiness.cap_reasons || []).length === 0) {
-    verdict = "This page is ready for AI shopping agents — its product data is machine-readable and evidence-backed.";
+    verdict = i18n.t("verdictReady");
   } else if (score >= 50) {
-    verdict = "This page is partially readable by AI shopping agents; the gaps below limit how confidently they can use it.";
+    verdict = i18n.t("verdictPartial");
   } else {
-    verdict = "This page is largely invisible or untrustworthy to AI shopping agents in its current state.";
+    verdict = i18n.t("verdictPoor");
   }
 
   const points = [];
   if ((readiness.cap_reasons || []).length) {
-    points.push(`The score is hard-capped at ${readiness.safety_cap}: ${readiness.cap_reasons.join(" ")}`);
+    points.push(escapeHtml(i18n.t("summaryCapped", readiness.safety_cap, readiness.cap_reasons.join(" "))));
   }
   if (high || medium) {
-    points.push(`${high} critical and ${medium} recommended findings need attention — see the Findings tab.`);
+    points.push(escapeHtml(i18n.t("summaryFindings", high, medium)));
   }
   if (blocking) {
-    points.push(`${blocking} blocking fact${blocking > 1 ? "s" : ""} only the merchant can supply — see Merchant questions.`);
+    points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
   }
   const topAction = (result.plan || [])[0];
   if (topAction) {
-    points.push(`Start here: ${topAction.action}`);
+    points.push(escapeHtml(i18n.t("summaryStart", topAction.action)));
   }
   const validation = (state.draft || {}).validation || {};
   if ((state.draft?.proposed_changes || []).length && validation.after_score != null) {
     points.push(
-      `<span class="autofix">Auto-drafted ${state.draft.proposed_changes.length} reversible fix(es): ` +
-      `validated preview ${validation.before_score} → ${validation.after_score} — see the Fixes tab.</span>`
+      `<span class="autofix">` +
+        escapeHtml(
+          i18n.t(
+            "summaryAutofix",
+            state.draft.proposed_changes.length,
+            validation.before_score,
+            validation.after_score
+          )
+        ) +
+        `</span>`
     );
   }
 
   el("summary").innerHTML =
-    `<div class="verdict">${escapeHtml(verdict)} (${score}/100, ${escapeHtml(readiness.status || "")})</div>` +
-    (points.length
-      ? `<ul>${points.map((p) => `<li>${p.startsWith("<span") ? p : escapeHtml(p)}</li>`).join("")}</ul>`
-      : "");
+    `<div class="verdict">${escapeHtml(verdict)} (${escapeHtml(i18n.t("scoreLine", score, readiness.status || ""))})</div>` +
+    (points.length ? `<ul>${points.map((p) => `<li>${p}</li>`).join("")}</ul>` : "");
 }
 
 function renderEvidence(record) {
@@ -428,7 +387,7 @@ function render(result) {
 
 function appendMessage(role, text, mode) {
   const log = el("chat-log");
-  const modeTag = mode ? `<span class="mode">answered by ${escapeHtml(mode)}</span>` : "";
+  const modeTag = mode ? `<span class="mode">${escapeHtml(i18n.t("answeredBy", mode))}</span>` : "";
   log.insertAdjacentHTML(
     "beforeend",
     `<div class="msg ${role}"><div class="bubble">${escapeHtml(text)}${modeTag}</div></div>`
@@ -442,7 +401,7 @@ async function sendChat() {
   if (!question) return;
   const context = state.draft || state.result;
   if (!context) {
-    appendMessage("agent", "Run an audit first, then ask me about the result.");
+    appendMessage("agent", i18n.t("chatNeedsAudit"));
     return;
   }
   input.value = "";
@@ -457,7 +416,7 @@ async function sendChat() {
     });
     appendMessage("agent", reply.answer, reply.mode);
   } catch (error) {
-    appendMessage("agent", `Error: ${error.message}`);
+    appendMessage("agent", i18n.t("error", error.message));
   } finally {
     el("chat-send").disabled = false;
     input.focus();
@@ -475,6 +434,14 @@ function download(filename, text, type) {
 }
 
 /* ---------- wiring ---------- */
+
+i18n.set(i18n.detect());
+el("lang").value = i18n.lang;
+
+el("lang").addEventListener("change", () => {
+  i18n.set(el("lang").value);
+  if (state.result) render(state.result);
+});
 
 el("pillars").addEventListener("click", (event) => {
   const button = event.target.closest(".pillar");
@@ -499,14 +466,14 @@ el("demo-good").addEventListener("click", () => {
   el("url").value = DEMO_GOOD_URL;
   el("html").value = DEMO_GOOD_HTML;
   state.answers = {};
-  setStatus("Good demo loaded. Press Audit page.");
+  setStatus(i18n.t("demoGoodLoaded"));
 });
 
 el("demo-bad").addEventListener("click", () => {
   el("url").value = DEMO_BAD_URL;
   el("html").value = DEMO_BAD_HTML;
   state.answers = {};
-  setStatus("Bad demo loaded. Press Audit page.");
+  setStatus(i18n.t("demoBadLoaded"));
 });
 
 el("fetch").addEventListener("click", fetchHtml);
@@ -540,13 +507,13 @@ el("chat-input").addEventListener("keydown", (event) => {
 
 el("copy-jsonld").addEventListener("click", (event) => {
   navigator.clipboard.writeText(el("jsonld").textContent).then(() => {
-    event.target.textContent = "Copied";
-    setTimeout(() => (event.target.textContent = "Copy"), 1200);
+    event.target.textContent = i18n.t("copied");
+    setTimeout(() => (event.target.textContent = i18n.t("copy")), 1200);
   });
 });
 
 el("download-json").addEventListener("click", () => {
-  if (state.result) download("catalogready-result.json", JSON.stringify(state.result, null, 2), "application/json");
+  if (state.result) download("catalogready-result.json", JSON.stringify(state.draft || state.result, null, 2), "application/json");
 });
 
 el("download-report").addEventListener("click", async () => {

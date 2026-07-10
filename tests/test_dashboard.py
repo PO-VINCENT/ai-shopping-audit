@@ -15,11 +15,24 @@ class DashboardTests(unittest.TestCase):
                 self.assertTrue(content_type.startswith("text/"))
 
     def test_dashboard_calls_no_external_origins(self) -> None:
-        for filename in ("index.html", "app.js", "styles.css"):
+        for filename in ("index.html", "app.js", "i18n.js", "styles.css"):
             content = (_DASHBOARD_DIR / filename).read_text(encoding="utf-8")
             self.assertNotIn("https://cdn", content)
             self.assertNotIn("src=\"http", content)
             self.assertNotIn("@import", content)
+
+    def test_i18n_languages_cover_the_same_keys(self) -> None:
+        import re
+
+        content = (_DASHBOARD_DIR / "i18n.js").read_text(encoding="utf-8")
+        html = (_DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
+        # Every static key referenced in the HTML must exist in the dictionary.
+        for key in set(re.findall(r'data-i18n(?:-placeholder|-title)?="([a-zA-Z]+)"', html)):
+            self.assertIn(f"{key}:", content, f"missing i18n key: {key}")
+        # Both languages must define the pillar tables.
+        self.assertEqual(content.count("pillars: {"), 2)
+        self.assertEqual(content.count("pillarExplain: {"), 2)
+        self.assertEqual(content.count("checks: {"), 2)
 
     def test_fetch_route_rejects_non_http_schemes(self) -> None:
         for url in ("file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)", ""):
