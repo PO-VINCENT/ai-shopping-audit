@@ -4,6 +4,9 @@
 
 ### Added
 
+- Dashboard pillars are now self-explanatory: click any pillar to expand a
+  plain-language description of what it measures and the exact ✓/✗ checks
+  behind its points, plus a note on how the 100-point total and caps work.
 - `catalogready dashboard` — one command serves the interactive web UI and
   the local JSON API on the same port and opens the browser. The dashboard
   (packaged in `src/catalogready/dashboard/`) audits pasted product pages,

@@ -12,6 +12,42 @@ const PILLAR_LABELS = {
   claim_grounding: "Claim grounding",
 };
 
+const PILLAR_EXPLAIN = {
+  product_identity:
+    "Can an AI agent tell exactly which product this is? Checks the title, brand, " +
+    "category, a stable identifier (SKU, GTIN, or MPN), and a canonical URL.",
+  offer_completeness:
+    "Can an agent quote this offer? Price, currency, and availability must exist as " +
+    "evidence and be machine-readable together in the Offer markup.",
+  structured_data:
+    "Is there valid Product JSON-LD that matches the visible page? This is the " +
+    "primary surface shopping agents parse; missing Product data caps the total at 74.",
+  decision_evidence:
+    "Is there enough verified substance to answer buyer questions: a description, " +
+    "specifications, substantive visible text, and on-page shipping/returns/care facts?",
+  media_variants:
+    "Can an agent show and distinguish the product: a primary image, multiple images, " +
+    "variant attributes (color/size), and a variant-level identifier.",
+  claim_grounding:
+    "Do marketing claims in the title and description have supporting evidence on the " +
+    "page? Unsupported superlative, proof, warranty, or performance claims deduct " +
+    "points, and a high-risk one caps the total at 49.",
+};
+
+const CHECK_LABELS = {
+  stable_identifier: "stable identifier (SKU / GTIN / MPN)",
+  complete_offer_markup: "price + currency + availability together in Offer markup",
+  product_node: "Product JSON-LD node present",
+  valid_json_ld: "all JSON-LD blocks parse",
+  substantive_page: "at least 120 words of visible text",
+  evidence_topics: "3+ evidence topics (shipping, returns, care…)",
+  review_evidence: "aggregate rating with review count",
+  variant_attribute: "variant attribute (color / size / pattern)",
+  variant_identity: "variant-level identifier",
+  no_high_risk_claims: "no unsupported high-risk claims",
+  no_unsupported_claims: "no unsupported claims at all",
+};
+
 const DEMO_GOOD_URL = "https://example.com/products/cr-001";
 const DEMO_GOOD_HTML = `<!doctype html>
 <html lang="en">
@@ -153,15 +189,33 @@ function renderDial(score) {
     `<text x="66" y="86" text-anchor="middle" font-size="12" opacity="0.7">/ 100</text>`;
 }
 
+function checkLabel(key) {
+  return CHECK_LABELS[key] || key.replace(/_/g, " ");
+}
+
 function renderPillars(components) {
   el("pillars").innerHTML = Object.entries(components)
     .map(([key, section]) => {
       const max = section.max_score || 1;
       const ratio = section.score / max;
+      const checks = Object.entries(section.checks || {})
+        .map(
+          ([check, passed]) =>
+            `<li class="${passed ? "pass" : "fail"}">` +
+            `<span aria-hidden="true">${passed ? "✓" : "✗"}</span> ${escapeHtml(checkLabel(check))}</li>`
+        )
+        .join("");
       return (
-        `<div class="pillar"><span>${escapeHtml(PILLAR_LABELS[key] || key)}</span>` +
+        `<div class="pillar-group">` +
+        `<button class="pillar" type="button" data-pillar="${escapeHtml(key)}" aria-expanded="false"` +
+        ` title="Click to see what this pillar checks">` +
+        `<span><span class="chev" aria-hidden="true">▸</span>${escapeHtml(PILLAR_LABELS[key] || key)}</span>` +
         `<span class="bar"><i style="width:${Math.round(ratio * 100)}%;background:${scoreColor(ratio)}"></i></span>` +
-        `<span>${section.score}/${max}</span></div>`
+        `<span>${section.score}/${max}</span></button>` +
+        `<div class="pillar-detail" hidden>` +
+        `<p>${escapeHtml(PILLAR_EXPLAIN[key] || "")}</p>` +
+        `<ul class="checks">${checks}</ul>` +
+        `</div></div>`
       );
     })
     .join("");
@@ -278,6 +332,16 @@ function download(filename, text, type) {
 }
 
 /* ---------- wiring ---------- */
+
+el("pillars").addEventListener("click", (event) => {
+  const button = event.target.closest(".pillar");
+  if (!button) return;
+  const detail = button.parentElement.querySelector(".pillar-detail");
+  const expanded = button.getAttribute("aria-expanded") === "true";
+  button.setAttribute("aria-expanded", String(!expanded));
+  button.querySelector(".chev").textContent = expanded ? "▸" : "▾";
+  detail.hidden = expanded;
+});
 
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {

@@ -84,8 +84,24 @@ button { font: inherit; cursor: pointer; }
 .pillars { margin-top: .7rem; }
 .pillar {
   display: grid; grid-template-columns: 10.5rem 1fr 3.4rem; gap: .6rem;
-  align-items: center; font-size: .84rem; margin: .28rem 0;
+  align-items: center; font-size: .84rem; margin: .28rem 0; width: 100%;
+  border: 0; background: none; color: var(--fg); padding: .1rem 0; text-align: left;
+  cursor: pointer; border-radius: 6px;
 }
+.pillar:hover { background: var(--chip); }
+.chev { display: inline-block; width: 1rem; color: var(--muted); font-size: .72rem; }
+.pillar-detail {
+  margin: .1rem 0 .5rem 1rem; padding: .55rem .8rem; border-left: 2px solid var(--border);
+  font-size: .8rem; color: var(--muted);
+}
+.pillar-detail p { margin: 0 0 .4rem; }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { padding: .08rem 0; }
+.checks li span { display: inline-block; width: 1rem; font-weight: 700; }
+.checks .pass span { color: var(--good); }
+.checks .fail span { color: var(--bad); }
+.checks .fail { color: var(--fg); }
+.score-note { margin-top: .6rem; }
 .bar { height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 4px; transition: width .5s ease; }
 
