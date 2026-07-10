@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .model_providers import ProviderError, provider_status
 from .service import describe_agent, dispatch
+from .env import load_local_env
 
 
 app = FastAPI(
@@ -211,6 +212,7 @@ async def a2a(request: Request) -> dict[str, Any]:
 
 
 def main() -> None:
+    load_local_env()
     uvicorn.run(
         "catalogready.api_server:app",
         host=os.environ.get("HOST", "127.0.0.1"),

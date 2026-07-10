@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+from .env import load_local_env
 from .fetch import fetch_page
 from .reporting.html import render_html_report
 from .reporting.terminal import render_score_card
@@ -176,6 +177,7 @@ def _read_optional(path: str | None) -> str:
 
 
 def main() -> None:
+    load_local_env()
     argv = sys.argv[1:]
     if argv and argv[0].startswith(("http://", "https://")):
         argv = ["audit", *argv]

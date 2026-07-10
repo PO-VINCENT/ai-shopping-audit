@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 
 from .model_providers import ProviderError, provider_status
 from .service import dispatch
+from .env import load_local_env
 
 
 MAX_BODY_BYTES = 8 * 1024 * 1024
@@ -143,6 +144,7 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
 
 
 def main(open_browser: bool = False) -> None:
+    load_local_env()
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8080"))
     server = ThreadingHTTPServer((host, port), CatalogReadyHandler)

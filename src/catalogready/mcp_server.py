@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
+from .env import load_local_env
 from .service import (
     audit_catalog,
     audit_discovery_bundle,
@@ -157,6 +158,7 @@ def catalogready_optimize_shopify_payload(
 
 
 def main() -> None:
+    load_local_env()
     mcp.run()
 
 
