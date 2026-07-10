@@ -57,6 +57,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Interactive agent session: audit, answer questions, draft fixes",
     )
 
+    dashboard = subparsers.add_parser(
+        "dashboard",
+        help="Open the local web dashboard (serves UI and API on one port)",
+    )
+    dashboard.add_argument("--port", type=int, default=8080)
+    dashboard.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Do not open the browser automatically",
+    )
+
     catalog = subparsers.add_parser("catalog", help="Audit a CSV product catalog")
     catalog.add_argument("catalog_path")
 
@@ -173,6 +184,14 @@ def main() -> None:
         from .chat import main as chat_main
 
         chat_main()
+        return
+    if args.command == "dashboard":
+        import os
+
+        from .local_server import main as server_main
+
+        os.environ["PORT"] = str(args.port)
+        server_main(open_browser=not args.no_open)
         return
     if args.command == "audit":
         if args.html_file:

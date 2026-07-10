@@ -4,6 +4,13 @@
 
 ### Added
 
+- `catalogready dashboard` — one command serves the interactive web UI and
+  the local JSON API on the same port and opens the browser. The dashboard
+  (packaged in `src/catalogready/dashboard/`) audits pasted product pages,
+  renders the score dial and pillar bars, collects merchant answers inline,
+  drafts evidence-backed fixes with isolated-preview validation, and
+  downloads the HTML report via the new `/v1/report/html` route.
+
 - `catalogready chat` (also `catalogready-chat`) — an interactive agent
   session in the terminal: streamed tool traces, colored score cards,
   `/audit`, `/answers` (pause-and-resume merchant Q&A), `/draft` with
@@ -12,6 +19,12 @@
   with optional BYO-model answers grounded strictly in the audit JSON.
 - Shared `reporting/terminal.py` renderers and a `fetch.py` single-page
   fetch helper used by both the CLI and the chat adapter.
+
+### Removed
+
+- The standalone `frontend/` directory and its second static-file server.
+  The packaged dashboard replaces it with a single-command, same-origin
+  setup (no CORS configuration, no separate `http.server`).
 
 ## 0.5.0 — 2026-07-10
 

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Audit a product page for AI shopping readiness">
+  <title>CatalogReady · Product AI-readiness audit</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">CR</span>
+      <span><strong>CatalogReady</strong><small>Is your product page readable by AI shopping agents?</small></span>
+    </div>
+    <div class="badges">Offline · deterministic · no API key · no storefront writes</div>
+  </header>
+
+  <main class="layout">
+    <section class="input-card">
+      <h2>Product page</h2>
+      <label>URL
+        <input id="url" type="url" placeholder="https://store.example/products/item" spellcheck="false">
+      </label>
+      <label>Page HTML
+        <textarea id="html" rows="9" spellcheck="false"
+          placeholder="Paste the rendered product-page HTML. Nothing leaves this machine."></textarea>
+      </label>
+      <div class="demo-row">
+        <button class="link" id="demo-good" type="button">Load good demo (97/100)</button>
+        <button class="link" id="demo-bad" type="button">Load bad demo (16/100)</button>
+      </div>
+      <details>
+        <summary>Model provider (optional)</summary>
+        <div class="provider-grid">
+          <label>Provider
+            <select id="provider">
+              <option value="deterministic">Offline / deterministic</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Gemini</option>
+              <option value="anthropic">Claude</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+          </label>
+          <label>Model ID
+            <input id="model" type="text" placeholder="Server default" spellcheck="false">
+          </label>
+        </div>
+        <p class="note">Keys stay in the local server environment. This page never asks for or stores them.</p>
+      </details>
+      <button class="primary" id="run" type="button">Audit page</button>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="results">
+      <div id="empty" class="empty">
+        <h2>Your audit appears here</h2>
+        <p>Load a demo or paste a product page, then press <strong>Audit page</strong>.
+        You get a 0–100 readiness score, findings with rule IDs, the questions only
+        the merchant can answer, and evidence-backed fixes.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="hero">
+          <svg id="dial" class="dial" viewBox="0 0 132 132" role="img"></svg>
+          <div class="hero-side">
+            <h2 id="product-title"></h2>
+            <p id="product-url" class="muted"></p>
+            <div id="pillars" class="pillars"></div>
+          </div>
+        </div>
+        <div id="caps"></div>
+
+        <div class="trace-wrap"><div id="trace" class="trace"></div></div>
+
+        <nav class="tabs" role="tablist">
+          <button class="tab is-active" data-tab="findings" type="button">Findings <span id="findings-count" class="count"></span></button>
+          <button class="tab" data-tab="questions" type="button">Merchant questions <span id="questions-count" class="count"></span></button>
+          <button class="tab" data-tab="fixes" type="button">Fixes</button>
+          <button class="tab" data-tab="evidence" type="button">Evidence</button>
+        </nav>
+
+        <section id="panel-findings" class="panel"></section>
+
+        <section id="panel-questions" class="panel" hidden>
+          <p class="note">CatalogReady never invents these facts. Supply verified values and re-run.</p>
+          <div id="questions"></div>
+          <button class="primary" id="resume" type="button" hidden>Re-run with answers</button>
+        </section>
+
+        <section id="panel-fixes" class="panel" hidden>
+          <p class="note">Draft mode builds reversible changes from verified evidence only and
+          validates them against an isolated in-memory preview. Nothing is written to a storefront.</p>
+          <button class="primary" id="draft" type="button">Draft evidence-backed fixes</button>
+          <div id="changes"></div>
+          <div id="validation"></div>
+          <div id="jsonld-wrap" hidden>
+            <div class="row-between">
+              <h3>Recommended Product JSON-LD</h3>
+              <button class="secondary" id="copy-jsonld" type="button">Copy</button>
+            </div>
+            <pre id="jsonld"></pre>
+          </div>
+        </section>
+
+        <section id="panel-evidence" class="panel" hidden>
+          <table>
+            <thead><tr><th>ID</th><th>Field</th><th>Value</th><th>Source</th></tr></thead>
+            <tbody id="evidence"></tbody>
+          </table>
+        </section>
+
+        <div class="actions">
+          <button class="secondary" id="download-report" type="button">Download HTML report</button>
+          <button class="secondary" id="download-json" type="button">Download JSON</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>CatalogReady · evidence-grounded product audits</span>
+    <span>A readiness score is never a ranking or citation guarantee.</span>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

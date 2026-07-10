@@ -131,6 +131,20 @@ from the audit result; set `/provider openai` (or `gemini`, `claude`,
 `deepseek` — keys via server environment variables only) for open-ended,
 model-answered questions grounded strictly in the audit JSON.
 
+## Interactive dashboard
+
+One command serves the web UI and the local API on the same port and opens
+your browser:
+
+```bash
+uv run catalogready dashboard
+```
+
+Paste a product page (or load the built-in good/bad demos), audit it, answer
+the merchant questions inline, draft evidence-backed fixes with an isolated
+preview validation, copy the recommended JSON-LD, and download the HTML
+report. Everything runs locally; the page never asks for API keys.
+
 ## Use it from an AI agent (MCP)
 
 CatalogReady ships an MCP server, so the agents you already use can audit
@@ -162,8 +176,7 @@ These are secondary to the page audit and documented in
 - `catalogready catalog feed.csv` — CSV catalog audit with the same
   deduction-and-cap scoring.
 - `catalogready-api` — HTTP server with OpenAPI docs and an A2A agent card.
-- A local dashboard (`frontend/`) and a Chromium extension
-  (`browser-extension/`) over the same service.
+- A Chromium extension (`browser-extension/`) over the same service.
 - Optional model-assisted listing drafts (OpenAI, Gemini, Claude, DeepSeek)
   with bring-your-own keys via server environment variables — never in tool
   arguments or browser storage — and deterministic claim evaluation with

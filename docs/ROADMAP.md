@@ -11,8 +11,10 @@ experimental until the core audit has an established user base.
 - **MCP server** — `catalogready-mcp`; lets Claude Code, Codex, Cursor, and
   other MCP clients run audits as a tool.
 - **HTTP/OpenAPI server** — `catalogready-api` with generated docs.
-- **Local dashboard** (`frontend/`) and **browser extension**
-  (`browser-extension/`) — demo surfaces over the same service.
+- **Local dashboard** — `catalogready dashboard` serves the packaged UI in
+  `src/catalogready/dashboard/` and the JSON API on one port.
+- **Browser extension** (`browser-extension/`) — demo surface over the same
+  service.
 - **Model-assisted listing drafts** — BYO-key OpenAI/Gemini/Claude/DeepSeek
   adapters behind one JSON contract; deterministic fallback by default.
 

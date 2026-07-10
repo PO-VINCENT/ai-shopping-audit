@@ -1,7 +1,9 @@
-"""Dependency-free local HTTP adapter for the browser extension.
+"""Dependency-free local HTTP adapter and dashboard host.
 
-This is intentionally small and localhost-only. Production deployments should
-use ``catalogready-api`` with FastAPI, authentication, and a reverse proxy.
+Serves the packaged interactive dashboard at ``/`` and the JSON API under
+``/v1``. This is intentionally small and localhost-only. Production
+deployments should use ``catalogready-api`` with FastAPI, authentication,
+and a reverse proxy.
 """
 
 from __future__ import annotations
@@ -10,6 +12,7 @@ import json
 import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -18,6 +21,14 @@ from .service import dispatch
 
 
 MAX_BODY_BYTES = 8 * 1024 * 1024
+
+_DASHBOARD_DIR = Path(__file__).parent / "dashboard"
+_STATIC_FILES = {
+    "/": ("index.html", "text/html; charset=utf-8"),
+    "/index.html": ("index.html", "text/html; charset=utf-8"),
+    "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+    "/styles.css": ("styles.css", "text/css; charset=utf-8"),
+}
 
 
 class CatalogReadyHandler(BaseHTTPRequestHandler):
@@ -66,9 +77,25 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
         self._cors()
         self.end_headers()
 
+    def _send_static(self, filename: str, content_type: str) -> None:
+        file_path = _DASHBOARD_DIR / filename
+        if not file_path.is_file():
+            self._send_json(HTTPStatus.NOT_FOUND, {"detail": "Dashboard asset missing"})
+            return
+        body = file_path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler contract
         path = urlparse(self.path).path
-        if path == "/health":
+        if path in _STATIC_FILES:
+            filename, content_type = _STATIC_FILES[path]
+            self._send_static(filename, content_type)
+        elif path == "/health":
             self._send_json(HTTPStatus.OK, {"status": "ok", "service": "catalogready-local"})
         elif path == "/v1/providers":
             self._send_json(HTTPStatus.OK, {"providers": provider_status()})
@@ -78,6 +105,7 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler contract
         routes = {
             "/v1/agent/html": "run_product_agent_html",
+            "/v1/report/html": "render_html_report",
             "/v1/optimize/html": "optimize_product_html",
             "/v1/optimize/csv": "optimize_product_csv",
             "/v1/optimize/evidence": "optimize_product_evidence",
@@ -114,11 +142,17 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
             super().log_message(format, *args)
 
 
-def main() -> None:
+def main(open_browser: bool = False) -> None:
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8080"))
     server = ThreadingHTTPServer((host, port), CatalogReadyHandler)
-    print(f"CatalogReady local server listening on http://{host}:{port}", flush=True)
+    address = f"http://{host}:{port}"
+    print(f"CatalogReady dashboard and local API listening on {address}", flush=True)
+    if open_browser:
+        import threading
+        import webbrowser
+
+        threading.Timer(0.4, webbrowser.open, args=(address,)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
