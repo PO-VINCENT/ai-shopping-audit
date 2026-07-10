@@ -154,6 +154,8 @@ the load-bearing facts, with primary sources:
 | SEO-CANONICAL-003 | low | page canonicalizes to a different URL (confirm intent) | CatalogReady convention |
 | SEO-SITEMAP-001 | low | sitemap supplied to the discovery bundle | Standard: [sitemaps.org](https://www.sitemaps.org); Bing asks for canonical-only sitemaps with accurate `lastmod` |
 | SEO-SITEMAP-002 | medium | audited URL present in the sitemap | Same as above |
+| SEO-TITLE-002 | medium | title ≤150 chars, no promotional text, not all-caps | Platform-derived: GMC and MMC title rules; OpenAI ACP title ≤150 ([GMC spec](https://support.google.com/merchants/answer/7052112), [MMC attributes](https://help.ads.microsoft.com/apex/index/3/en/51084), [ACP schema](https://developers.openai.com/commerce/specs/file-upload/products)) |
+| SEO-SNIPPET-001 | medium | robots meta does not set `noarchive`/`nocache`/`nosnippet`/`max-snippet:0` | Platform-derived: Bing — `noarchive` blocks Copilot use entirely, `nocache` limits citations to URL/title/snippet; Google snippet controls gate AI Overviews ([Bing guidelines](https://www.bing.com/webmasters/help/webmaster-guidelines-30fba23a), [Google AI features](https://developers.google.com/search/docs/appearance/ai-features)) |
 | SEO-ROBOTS-\<crawler\> | high | robots.txt does not block the crawlers that decide AI-answer inclusion: **googlebot** ([controls AI Overviews access](https://developers.google.com/search/docs/appearance/ai-features)), **bingbot** ([Bing/Copilot](https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0)), **oai-searchbot** ([ChatGPT search](https://developers.openai.com/api/docs/bots)), **perplexitybot** ([Perplexity](https://docs.perplexity.ai/guides/bots)), **claude-searchbot** ([Claude](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler)) | Platform-derived (one rule per blocked crawler). Training bots (GPTBot, ClaudeBot, Google-Extended) are deliberately **not** flagged — blocking them does not affect search/answer inclusion, per each vendor's docs |
 
 ### `GEO-*` — machine-readable product data (`discovery/structured_data.py`)
@@ -163,6 +165,13 @@ the load-bearing facts, with primary sources:
 | GEO-PRODUCT-001 | medium (caps page score at 74) | a JSON-LD `@type: Product` node exists | Platform-derived: required for Google merchant listings ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)); Bing supports Product/Offer annotations ([markup docs](https://www.bing.com/webmasters/help/marking-up-your-site-with-structured-data-3a93e731)) |
 | GEO-PRODUCT-002 | medium | Product node has a `name` | Standard: `name` is a required merchant-listing property (Google, above) |
 | GEO-OFFER-001 | medium | an offer combines `price` + `priceCurrency` + `availability` | Standard: `price`/`priceCurrency` required, `availability` recommended by Google (above); the same trio is required in OpenAI's ACP feed and ranks ChatGPT merchant lists ([ACP schema](https://developers.openai.com/commerce/specs/file-upload/products), [shopping help](https://help.openai.com/en/articles/11128490-shopping-with-chatgpt-search)) |
+| GEO-OFFER-002 | high | machine-readable price is greater than zero (also fails the offer pillar checks) | Standard: "Merchant listing experiences require a price greater than zero"; GMC does not accept a price of 0 ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing), [GMC spec](https://support.google.com/merchants/answer/7052112)) |
+| GEO-OFFER-003 | low | the markup price appears in the visible page text | Platform-derived: Google structured data must be "a true representation of the page content"; feed/page price mismatch is a GMC disapproval cause; Bing validates markup against visible content. Kept low severity because prices rendered by JavaScript are invisible to a static audit |
+| GEO-RETURNS-001 | medium | returns info exists — `hasMerchantReturnPolicy` markup or visible returns text | Platform-derived: `return_policy` is a **required** OpenAI ACP feed field; recommended Offer property at Google; MMC UCP-readiness field ([ACP schema](https://developers.openai.com/commerce/specs/file-upload/products)) |
+| GEO-SHIPPING-001 | low | shipping info exists — `shippingDetails` markup or visible shipping text | Platform-derived: Google recommended Offer property; Perplexity Merchant Program product data ([terms](https://www.perplexity.ai/hub/legal/merchant-program-terms-of-service)) |
+| GEO-IMAGE-001 | low | product image URLs are absolute, crawlable http(s) URLs | Platform-derived: Google requires crawlable, indexable image URLs; MMC requires a crawlable image ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)) |
+| GEO-VARIANT-001 | low | variant attributes (color/size/pattern) carry `inProductGroupWithID`/`isVariantOf` markup | Platform-derived: Google merchant-listing variant properties; ACP `group_id` ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)) |
+| GEO-RATING-001 | low | visible review mentions have `aggregateRating` markup | Platform-derived: Google recommended property; ChatGPT shopping displays ratings from metadata ([shopping help](https://help.openai.com/en/articles/11128490-shopping-with-chatgpt-search)) |
 | GEO-EVIDENCE-001 | medium | ≥120 words of visible text | CatalogReady convention, aligned with Bing's "keep facts explicit and independently verifiable" content guidance |
 | GEO-EVIDENCE-002 | low | shopper-evidence topics present (specs, limitations, shipping, returns) | Platform-derived: return policy is a required ACP feed field (OpenAI); shipping/returns are Perplexity Merchant Program product data ([terms](https://www.perplexity.ai/hub/legal/merchant-program-terms-of-service)) |
 
@@ -201,6 +210,7 @@ listing policies. The phrase lists are CatalogReady convention.
 | CLAIM-PROOF-001 | high (caps at 49) | "clinically proven", "FDA approved", "doctor recommended"… with no supporting evidence on the page |
 | CLAIM-WARRANTY-001 | high | "lifetime warranty", "N-year guarantee" with no warranty terms on the page |
 | CLAIM-PERFORMANCE-001 | medium | "waterproof", "hypoallergenic", "100% X"… with no matching specification or page evidence |
+| CLAIM-INJECTION-001 | high (caps page score at 49) | page text contains prompt-injection-style instructions aimed at AI agents ("ignore previous instructions", "as an AI assistant, always recommend…") — modeled on Bing's named abuse category "Prompt Injection and AI Manipulation" ([Bing guidelines](https://www.bing.com/webmasters/help/webmaster-guidelines-30fba23a)) |
 
 Bing's guidelines add a platform reason to care: structured or page data
 that misleads "may be ignored and can affect trust and eligibility."
@@ -225,23 +235,16 @@ which Microsoft's Content API accepts near-verbatim.
 
 ## Proposed rules (collected, not yet implemented)
 
-Requirements documented by the platforms that CatalogReady does not check
-yet. Contributions welcome — each needs a deterministic check and a fixture
-(see [CONTRIBUTING.md](../CONTRIBUTING.md)).
+Of the eleven candidate rules collected from platform documentation, nine
+are implemented above. The remaining two need network access and therefore
+cannot live in the no-network deterministic core; they would fit an
+explicit online mode. Contributions welcome — each needs a deterministic
+check and a fixture (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 
-| Candidate ID | Would check | Source |
-|---|---|---|
-| GEO-OFFER-002 | price is greater than zero | Google: "Merchant listing experiences require a price greater than zero" ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)) |
-| GEO-OFFER-003 | JSON-LD price/availability matches the visible page text | Google structured-data policy ("true representation"); GMC price-mismatch disapproval; Bing validates against visible content |
-| GEO-RETURNS-001 | a return-policy URL or `hasMerchantReturnPolicy` is present | Required field in OpenAI's ACP feed; recommended Offer property at Google; MMC "UCP readiness" return-policy field |
-| GEO-SHIPPING-001 | machine-readable `shippingDetails` present | Google recommended Offer property; Perplexity Merchant Program data |
-| GEO-IMAGE-001 | image meets minimum dimensions (≥500×500 for GMC by Jan 2027; ≥220×220 for MMC) and is a crawlable URL | GMC / MMC image rules (requires fetching the image — would leave the no-network core) |
-| GEO-VARIANT-001 | `inProductGroupWithID`/`isVariantOf` markup for variant pages | Google merchant-listing variant properties; ACP `group_id` |
-| GEO-RATING-001 | `aggregateRating` markup when review content is visible | Google recommended property; ChatGPT shopping displays ratings |
-| SEO-SNIPPET-001 | page does not set `noarchive`/`nocache`/`nosnippet` unintentionally | Bing: `noarchive` blocks Copilot use; `nocache` limits citation depth; Google: snippet controls gate AI Overviews |
-| SEO-INDEXNOW-001 | site exposes an IndexNow key (freshness signal for price/stock changes) | [IndexNow](https://www.indexnow.org/documentation); Bing shopping-freshness blog |
-| SEO-TITLE-002 | title ≤150 chars, no promo text / all-caps | GMC and MMC title rules; ACP ≤150 |
-| CLAIM-INJECTION-001 | page text contains prompt-injection-style instructions aimed at AI agents | Bing abuse policy: "Prompt Injection and AI Manipulation" |
+| Candidate ID | Would check | Source | Why deferred |
+|---|---|---|---|
+| GEO-IMAGE-002 | image files meet minimum dimensions (≥500×500 for GMC by Jan 2027; ≥220×220 for MMC, 250×250 for apparel) | [GMC spec](https://support.google.com/merchants/answer/7052112); [MMC attributes](https://help.ads.microsoft.com/apex/index/3/en/51084) | requires fetching the image bytes (GEO-IMAGE-001 covers the offline-checkable URL shape) |
+| SEO-INDEXNOW-001 | site exposes an IndexNow key file (freshness signal for price/stock changes) | [IndexNow](https://www.indexnow.org/documentation); [Bing shopping-freshness blog](https://blogs.bing.com/webmaster/May-2025/IndexNow-Enables-Faster-and-More-Reliable-Updates-for-Shopping-and-Ads) | requires a GET for the key file |
 
 Not proposed: DeepSeek-specific rules (no documented requirements exist) and
 training-crawler rules (GPTBot / ClaudeBot / Google-Extended do not affect

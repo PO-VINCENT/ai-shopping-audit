@@ -4,6 +4,17 @@
 
 ### Added
 
+- Nine new deterministic page rules, implemented from the sourced candidate
+  list in docs/RULES.md: GEO-OFFER-002 (price must exceed zero; fails the
+  offer pillar checks), GEO-OFFER-003 (markup price visible in page text),
+  GEO-RETURNS-001 (return policy required by AI shopping feeds),
+  GEO-SHIPPING-001, GEO-IMAGE-001 (crawlable absolute image URLs),
+  GEO-VARIANT-001 (variant-group markup), GEO-RATING-001 (AggregateRating
+  for visible reviews), SEO-TITLE-002 (length/promo/all-caps title rules),
+  SEO-SNIPPET-001 (noarchive/nocache/nosnippet degrade Copilot citations),
+  and CLAIM-INJECTION-001 — prompt-injection text aimed at AI agents, which
+  caps the page score at 49. Only the two network-dependent candidates
+  (image dimensions, IndexNow key) remain proposed.
 - The browser extension is now the full agent experience (v0.5.0): one
   click captures the active tab's rendered HTML and shows the verdict,
   score dial, expandable pillars with per-check details, findings with rule

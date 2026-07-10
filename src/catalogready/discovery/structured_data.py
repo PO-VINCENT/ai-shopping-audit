@@ -40,7 +40,19 @@ def _has_type(node: dict[str, Any], expected: str) -> bool:
     return node_type == expected
 
 
-def audit_product_structured_data(blocks: Iterable[str]) -> tuple[dict[str, bool], list[Finding], dict[str, int]]:
+def _price_value(offer: dict[str, Any]) -> float | None:
+    raw = offer.get("price")
+    if isinstance(raw, dict):
+        raw = raw.get("price")
+    try:
+        return float(str(raw).replace(",", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def audit_product_structured_data(
+    blocks: Iterable[str],
+) -> tuple[dict[str, bool], list[Finding], dict[str, int], list[dict[str, Any]], list[dict[str, Any]]]:
     nodes, invalid = parse_json_ld(blocks)
     products = [node for node in nodes if _has_type(node, "Product")]
     offers = [node for node in nodes if _has_type(node, "Offer")]
@@ -103,9 +115,27 @@ def audit_product_structured_data(blocks: Iterable[str]) -> tuple[dict[str, bool
             )
         )
 
-    return {
-        "product": bool(products),
-        "product_identity": product_identity,
-        "offer_complete": offer_complete,
-    }, findings, {"json_ld_nodes": len(nodes), "products": len(products), "offers": len(offers), "invalid_json_ld": invalid}
+    priced = [value for value in (_price_value(offer) for offer in offers) if value is not None]
+    if priced and max(priced) <= 0:
+        findings.append(
+            finding(
+                "GEO-OFFER-002",
+                "high",
+                "Offer price is not greater than zero",
+                f"The highest machine-readable offer price is {max(priced)}.",
+                "Publish the real, current price; merchant listings require a price greater than zero.",
+            )
+        )
+
+    return (
+        {
+            "product": bool(products),
+            "product_identity": product_identity,
+            "offer_complete": offer_complete,
+        },
+        findings,
+        {"json_ld_nodes": len(nodes), "products": len(products), "offers": len(offers), "invalid_json_ld": invalid},
+        products,
+        offers,
+    )
 

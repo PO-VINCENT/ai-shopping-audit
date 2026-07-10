@@ -47,7 +47,9 @@ def score_page_readiness(
         "stable_identifier": (stable_id, 4),
         "canonical_url": (bool(product.get("url")), 2),
     }
-    offer_complete_markup = bool(summary.get("offers")) and clean_of("GEO-OFFER-001")
+    offer_complete_markup = (
+        bool(summary.get("offers")) and clean_of("GEO-OFFER-001") and clean_of("GEO-OFFER-002")
+    )
     offer_checks = {
         "price": (bool(price.get("amount")), 6),
         "currency": (bool(price.get("currency")), 4),
@@ -124,6 +126,9 @@ def score_page_readiness(
     if any(item.get("severity") == "high" for item in claim_findings):
         cap = min(cap, 49)
         cap_reasons.append("An unsupported high-risk claim was found in the listing copy.")
+    if not clean_of("CLAIM-INJECTION-001"):
+        cap = min(cap, 49)
+        cap_reasons.append("The page contains text aimed at manipulating AI agents.")
     if not stable_id:
         cap = min(cap, 59)
         cap_reasons.append("A stable product identifier is missing.")

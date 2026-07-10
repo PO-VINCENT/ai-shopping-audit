@@ -31,9 +31,13 @@ Hard gates (the score is capped at the lowest triggered cap):
 | Condition | Cap |
 |---|---|
 | Unsupported high-risk claim in listing copy | 49 |
+| Prompt-injection text aimed at AI agents on the page | 49 |
 | No stable product identifier | 59 |
 | Price, currency, or availability incomplete | 69 |
 | No Product structured data | 74 |
+
+A zero or negative machine-readable price (`GEO-OFFER-002`) does not cap
+the score but fails the offer-markup checks in two pillars.
 
 Status is `ready` only when the score is at least 80 and no cap fired.
 

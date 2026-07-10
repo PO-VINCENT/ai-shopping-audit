@@ -9,6 +9,7 @@ from catalogready.catalog.schemas import Finding, finding, percent, result, scor
 
 from .canonical import audit_canonical
 from .content_evidence import evidence_coverage, extract_page_signals
+from .quality import audit_page_quality
 from .robots import audit_robots
 from .sitemap import audit_sitemap
 from .structured_data import audit_product_structured_data
@@ -36,7 +37,9 @@ def audit_page_html(url: str, html: str) -> dict[str, Any]:
     if not indexable:
         findings.append(finding("SEO-ROBOTS-001", "high", "Page requests noindex", f"robots content is `{signals.robots}`.", "Remove noindex only if public discovery is intended."))
 
-    structured_checks, structured_findings, structured_summary = audit_product_structured_data(signals.json_ld_blocks)
+    structured_checks, structured_findings, structured_summary, products, offers = (
+        audit_product_structured_data(signals.json_ld_blocks)
+    )
     findings.extend(structured_findings)
 
     evidence = evidence_coverage(signals)
@@ -46,6 +49,8 @@ def audit_page_html(url: str, html: str) -> dict[str, Any]:
     missing_evidence = [name for name, present in evidence.items() if not present]
     if missing_evidence:
         findings.append(finding("GEO-EVIDENCE-002", "low", "Product evidence coverage is incomplete", f"Missing evidence areas: {', '.join(missing_evidence)}.", "Add concise shopper-facing facts only where the merchant can support them."))
+
+    findings.extend(audit_page_quality(signals, products, offers, evidence))
 
     checks = [
         title_ok,
