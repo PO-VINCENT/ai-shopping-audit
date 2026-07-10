@@ -184,7 +184,10 @@ These are secondary to the page audit and documented in
 - `catalogready catalog feed.csv` — CSV catalog audit with the same
   deduction-and-cap scoring.
 - `catalogready-api` — HTTP server with OpenAPI docs and an A2A agent card.
-- A Chromium extension (`browser-extension/`) over the same service.
+- A Chromium extension (`browser-extension/`) — one click on any product
+  page captures the rendered HTML and shows the score, findings, merchant
+  questions, auto-drafted fixes, and the ask-the-agent box. Works on
+  bot-protected storefronts because it reads what your browser rendered.
 - Optional model-assisted listing drafts (OpenAI, Gemini, Claude, DeepSeek)
   with bring-your-own keys via server environment variables — never in tool
   arguments or browser storage — and deterministic claim evaluation with

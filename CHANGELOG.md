@@ -4,6 +4,14 @@
 
 ### Added
 
+- The browser extension is now the full agent experience (v0.5.0): one
+  click captures the active tab's rendered HTML and shows the verdict,
+  score dial, expandable pillars with per-check details, findings with rule
+  IDs, inline merchant questions with re-run, auto-drafted fix suggestions
+  with validated preview and copyable JSON-LD, an ask-the-agent box, and
+  HTML/JSON downloads. Talks only to the local server; MV3 with
+  activeTab/scripting/storage permissions and local-only host permissions,
+  enforced by tests.
 - The dashboard now audits from a URL alone: a Fetch button and an
   auto-fetch on Audit ask the local server to retrieve the page via the new
   `/v1/fetch` route (one GET, http/https only, adapter-layer — the service
