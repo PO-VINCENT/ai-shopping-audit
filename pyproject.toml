@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 catalogready = "catalogready.cli:main"
+catalogready-chat = "catalogready.chat:main"
 catalogready-mcp = "catalogready.mcp_server:main"
 catalogready-api = "catalogready.api_server:main"
 catalogready-local = "catalogready.local_server:main"

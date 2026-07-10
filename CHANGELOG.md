@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `catalogready chat` (also `catalogready-chat`) — an interactive agent
+  session in the terminal: streamed tool traces, colored score cards,
+  `/audit`, `/answers` (pause-and-resume merchant Q&A), `/draft` with
+  isolated-preview validation, `/findings`, `/jsonld`, `/report`, and
+  free-text questions answered deterministically from the audit result,
+  with optional BYO-model answers grounded strictly in the audit JSON.
+- Shared `reporting/terminal.py` renderers and a `fetch.py` single-page
+  fetch helper used by both the CLI and the chat adapter.
+
 ## 0.5.0 — 2026-07-10
 
 First public-launch candidate. The project now leads with one product:

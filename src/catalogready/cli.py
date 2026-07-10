@@ -5,10 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import urllib.request
 from pathlib import Path
 
-from .reporting.html import PILLAR_LABELS, render_html_report
+from .fetch import fetch_page
+from .reporting.html import render_html_report
+from .reporting.terminal import render_score_card
 from .service import (
     audit_catalog,
     audit_discovery_bundle,
@@ -49,6 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Print the full JSON result instead of the score card",
+    )
+
+    subparsers.add_parser(
+        "chat",
+        help="Interactive agent session: audit, answer questions, draft fixes",
     )
 
     catalog = subparsers.add_parser("catalog", help="Audit a CSV product catalog")
@@ -158,67 +164,30 @@ def _read_optional(path: str | None) -> str:
     return Path(path).read_text(encoding="utf-8") if path else ""
 
 
-_FETCH_LIMIT_BYTES = 2_000_000
-
-
-def _fetch_page(url: str) -> str:
-    """Fetch one product page. The CLI's only network call; the core stays offline."""
-
-    request = urllib.request.Request(
-        url,
-        headers={"User-Agent": "CatalogReady/0.5 product-page audit (single request)"},
-    )
-    with urllib.request.urlopen(request, timeout=20) as response:
-        charset = response.headers.get_content_charset() or "utf-8"
-        return response.read(_FETCH_LIMIT_BYTES).decode(charset, errors="replace")
-
-
-def _score_card(result: dict, report_path: Path) -> str:
-    readiness = (result.get("readiness") or {}).get("before") or {}
-    product = (result.get("evidence_record") or {}).get("product") or {}
-    findings = result.get("findings") or []
-    counts = {
-        severity: sum(1 for item in findings if item.get("severity") == severity)
-        for severity in ("high", "medium", "low")
-    }
-    lines = [
-        "",
-        f"  {product.get('title') or (result.get('input') or {}).get('url', 'Product page')}",
-        "",
-        f"  CatalogReady Score: {readiness.get('score', 0)}/100 ({readiness.get('status', 'unknown')})",
-        "",
-    ]
-    for key, section in (readiness.get("components") or {}).items():
-        label = PILLAR_LABELS.get(key, key.replace("_", " ").title())
-        lines.append(f"  {label:<20} {section.get('score', 0):>3}/{section.get('max_score', 0)}")
-    for reason in readiness.get("cap_reasons") or []:
-        lines.append(f"  ! Score capped at {readiness.get('safety_cap')}: {reason}")
-    lines.extend(
-        [
-            "",
-            f"  {counts['high']} critical · {counts['medium']} recommended · {counts['low']} minor findings",
-            f"  Full report: {report_path}",
-            "",
-        ]
-    )
-    return "\n".join(lines)
-
-
 def main() -> None:
     argv = sys.argv[1:]
     if argv and argv[0].startswith(("http://", "https://")):
         argv = ["audit", *argv]
     args = build_parser().parse_args(argv)
+    if args.command == "chat":
+        from .chat import main as chat_main
+
+        chat_main()
+        return
     if args.command == "audit":
         if args.html_file:
             html = Path(args.html_file).read_text(encoding="utf-8")
         else:
             print(f"Fetching {args.url} (single request) ...", file=sys.stderr)
-            html = _fetch_page(args.url)
+            html = fetch_page(args.url)
         result = run_product_agent_html(args.url, html, mode="audit")
         report_path = Path(args.report)
         report_path.write_text(render_html_report(result), encoding="utf-8")
-        output = dumps(result) if args.json else _score_card(result, report_path)
+        output = (
+            dumps(result)
+            if args.json
+            else render_score_card(result, report_path, use_color=sys.stdout.isatty())
+        )
     elif args.command == "catalog":
         output = dumps(audit_catalog(args.catalog_path))
     elif args.command == "page":

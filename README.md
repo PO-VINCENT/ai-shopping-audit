@@ -98,6 +98,39 @@ When facts are missing, CatalogReady asks instead of inventing: the report
 lists the questions only the merchant can answer, and
 `--answers merchant-answers.json` resumes the audit with verified values.
 
+## Interactive agent session
+
+`catalogready chat` opens a Claude Code-style terminal session over the
+bounded agent — audit, ask, answer, fix:
+
+```text
+catalogready> /audit https://your-store.com/products/example
+● inspect_product_page — Extracted 3 evidence items ...
+● audit_product — Measured readiness at 16/100 and produced 13 findings.
+
+  CatalogReady Score: 16/100 (needs_work)
+  ...
+  [blocking] price: What is the current verified product price?
+
+catalogready> why is offer completeness low?
+Offer completeness: 0/20
+  ✗ price
+  ✗ currency
+  ...
+
+catalogready> /answers sku=CR-100 price=49.00 currency=AUD availability=in_stock
+catalogready> /draft
+Isolated preview validation: 16 → 60 (+44), status validated.
+
+catalogready> /report
+```
+
+The agent pauses for facts it cannot verify instead of inventing them;
+`/answers` resumes it. Free-text questions are answered deterministically
+from the audit result; set `/provider openai` (or `gemini`, `claude`,
+`deepseek` — keys via server environment variables only) for open-ended,
+model-answered questions grounded strictly in the audit JSON.
+
 ## Use it from an AI agent (MCP)
 
 CatalogReady ships an MCP server, so the agents you already use can audit
