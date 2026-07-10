@@ -1,0 +1,18 @@
+schema_version: "1.0"
+domain: example.com
+category: commuter shoes
+market: en-AU
+prompts:
+  - id: VIS-001
+    intent: discovery
+    text: What are the best commuter shoes for wet weather?
+  - id: VIS-002
+    intent: comparison
+    text: Compare waterproof commuter shoes for daily city walking.
+  - id: VIS-003
+    intent: evidence
+    text: Which commuter-shoe brands publish clear waterproofing evidence?
+  - id: VIS-004
+    intent: transaction
+    text: Where can I buy commuter shoes with clear returns in Australia?
+

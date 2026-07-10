@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catalogready.example/schemas/audit-result.schema.json",
+  "title": "CatalogReady audit result",
+  "type": "object",
+  "required": ["schema_version", "operation", "scores", "summary", "findings"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "operation": { "type": "string" },
+    "input": { "type": "object" },
+    "scores": {
+      "type": "object",
+      "required": ["catalog_readiness", "discovery_readiness", "observed_ai_visibility"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["score", "status"],
+        "properties": {
+          "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+          "status": { "enum": ["measured", "not_run", "unavailable"] }
+        }
+      }
+    },
+    "summary": { "type": "object" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "severity", "title", "evidence", "recommendation", "source"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "severity": { "enum": ["low", "medium", "high"] },
+          "title": { "type": "string" },
+          "evidence": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "source": { "const": "deterministic_rule" }
+        }
+      }
+    }
+  }
+}
+

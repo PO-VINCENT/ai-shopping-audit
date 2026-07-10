@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "catalogready": {
+      "command": "uv",
+      "args": ["run", "catalogready-mcp"],
+      "cwd": ".",
+      "timeout": 120000,
+      "trust": false
+    }
+  }
+}
+

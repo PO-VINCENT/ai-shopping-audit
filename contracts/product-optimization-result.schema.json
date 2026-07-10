@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catalogready.example/schemas/product-optimization-result.schema.json",
+  "title": "CatalogReady product visibility optimization result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "operation",
+    "provider",
+    "evidence_record",
+    "journey",
+    "draft",
+    "evaluation",
+    "readiness",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "operation": { "const": "optimize_product_visibility" },
+    "provider": { "type": "object" },
+    "evidence_record": {
+      "type": "object",
+      "required": ["source", "product", "evidence"]
+    },
+    "journey": {
+      "type": "object",
+      "required": ["customer_types", "stages", "queries"]
+    },
+    "draft": {
+      "type": "object",
+      "required": ["listing", "claims", "missing_information"]
+    },
+    "evaluation": {
+      "type": "object",
+      "required": ["claims", "counts", "evaluator_provider"]
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "score",
+        "status",
+        "components",
+        "generation_quality",
+        "observed_ai_visibility"
+      ],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "status": { "enum": ["publish_ready", "needs_review"] },
+        "components": {
+          "type": "object",
+          "description": "Source-evidence components only; generated content never adds points.",
+          "required": [
+            "evidence_grounding",
+            "feed_structured_data",
+            "image_readiness",
+            "clarity_compliance"
+          ]
+        },
+        "generation_quality": {
+          "type": "object",
+          "description": "Informational completeness of generated content; excluded from the score.",
+          "required": ["journey_query_coverage", "listing_completeness"]
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "required": ["required", "status", "notice"],
+      "properties": {
+        "required": { "const": true }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+id,item_group_id,title,description,link,image_link,price,availability,brand,product_type,color,size,gender,age_group,material
+CR-001-BLU-M,CR-001,Waterproof Commuter Shoe,Sealed commuter shoe for wet urban travel,https://example.com/products/cr-001?variant=blue-m,https://example.com/images/cr-001-blue.jpg,149.00 AUD,in_stock,CatalogReady,shoes,Blue,M,unisex,adult,
+CR-001-BLK-M,CR-001,Waterproof Commuter Shoe,,https://example.com/products/cr-001?variant=black-m,https://example.com/images/cr-001-black.jpg,149.00 AUD,in_stock,CatalogReady,shoes,Black,M,unisex,adult,
+CR-002,CR-002,Everyday Walking Shoe,Lightweight walking shoe for daily use,https://example.com/products/cr-002,,119.00 AUD,in_stock,CatalogReady,footwear,White,9,,adult,Mesh
+CR-002,CR-002,Everyday Walking Shoe Duplicate,Duplicate identifier for demonstration,https://example.com/products/cr-002-copy,https://example.com/images/cr-002-copy.jpg,119.00 AUD,in_stock,OtherBrand,shoes,White,10,unisex,adult,Mesh
+CR-003,,Trail City Hybrid,Trail-inspired outsole for mixed city surfaces,https://example.com/products/cr-003,https://example.com/images/cr-003.jpg,169.00 AUD,out_of_stock,CatalogReady,,,,,,
+

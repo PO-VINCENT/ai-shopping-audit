@@ -1,0 +1,47 @@
+{
+  "observations": [
+    {
+      "prompt_id": "VIS-001",
+      "provider": "recorded-model-a",
+      "checked_at": "2026-07-10T00:00:00Z",
+      "response": "CatalogReady and CityStep both publish commuter options.",
+      "citations": [
+        "https://example.com/products/cr-001",
+        "https://citystep.example/wet-weather"
+      ],
+      "product_mentioned": true,
+      "answer_supported": true
+    },
+    {
+      "prompt_id": "VIS-002",
+      "provider": "recorded-model-a",
+      "checked_at": "2026-07-10T00:01:00Z",
+      "response": "This comparison references CityStep and UrbanSole.",
+      "citations": [
+        "https://citystep.example/commuter",
+        "https://urbansole.example/guide"
+      ],
+      "product_mentioned": false,
+      "answer_supported": true
+    },
+    {
+      "prompt_id": "VIS-003",
+      "provider": "recorded-model-b",
+      "checked_at": "2026-07-10T00:02:00Z",
+      "response": "CatalogReady provides a materials explanation.",
+      "citations": ["https://example.com/products/cr-001"],
+      "product_mentioned": true,
+      "answer_supported": true
+    },
+    {
+      "prompt_id": "VIS-004",
+      "provider": "recorded-model-b",
+      "checked_at": "2026-07-10T00:03:00Z",
+      "response": "UrbanSole publishes the clearest returns page.",
+      "citations": ["https://urbansole.example/returns"],
+      "product_mentioned": false,
+      "answer_supported": false
+    }
+  ]
+}
+

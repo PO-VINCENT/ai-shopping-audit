@@ -1,0 +1,6 @@
+[mcp_servers.catalogready]
+command = "uv"
+args = [
+    "run",
+    "catalogready-mcp",
+]

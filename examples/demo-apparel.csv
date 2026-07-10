@@ -1,0 +1,5 @@
+id,title,description,link,image_link,price,availability,brand
+CR-001,Waterproof Commuter Shoe,Sealed commuter shoe for wet urban travel,https://example.com/products/cr-001,https://example.com/images/cr-001.jpg,149.00 AUD,in_stock,CatalogReady
+CR-002,Everyday Walking Shoe,,https://example.com/products/cr-002,https://example.com/images/cr-002.jpg,119.00 AUD,in_stock,CatalogReady
+CR-003,Trail City Hybrid,Trail-inspired outsole for mixed city surfaces,https://example.com/products/cr-003,,169.00 AUD,out_of_stock,CatalogReady
+

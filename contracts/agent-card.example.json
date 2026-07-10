@@ -1,0 +1,51 @@
+{
+  "protocolVersion": "0.3",
+  "name": "CatalogReady AI",
+  "description": "Evidence-grounded product listing, customer journey, claim audit, and AI visibility agent.",
+  "url": "https://catalogready.example.com/a2a",
+  "version": "0.4.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "product-readiness-agent",
+      "name": "Run product readiness agent",
+      "description": "Inspects supplied product HTML, plans fixes, asks for missing evidence, and validates reversible changes in memory.",
+      "tags": ["retail", "agent", "product-data", "evidence"]
+    },
+    {
+      "id": "audit-catalog",
+      "name": "Audit product catalog",
+      "description": "Checks required feed fields and missing values.",
+      "tags": ["retail", "ecommerce", "catalog"]
+    },
+    {
+      "id": "audit-page-html",
+      "name": "Audit product page evidence",
+      "description": "Checks supplied HTML for discovery readiness.",
+      "tags": ["seo", "geo", "structured-data"]
+    },
+    {
+      "id": "visibility-prompt-pack",
+      "name": "Build visibility prompt pack",
+      "description": "Creates stable prompts for AI citation measurement.",
+      "tags": ["geo", "ai-visibility", "evaluation"]
+    },
+    {
+      "id": "score-visibility-snapshots",
+      "name": "Score recorded AI visibility",
+      "description": "Measures citations, mentions, answer support, and competitor share of voice.",
+      "tags": ["geo", "citations", "benchmarking"]
+    },
+    {
+      "id": "optimize-product-visibility",
+      "name": "Optimize product visibility",
+      "description": "Creates a shopping journey, listing draft, evidence audit, and readiness score.",
+      "tags": ["retail", "product", "ai-visibility", "evidence"]
+    }
+  ]
+}

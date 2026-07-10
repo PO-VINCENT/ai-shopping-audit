@@ -1,0 +1,8 @@
+# Copy this block into a trusted project's `.codex/config.toml` or your user config.
+[mcp_servers.catalogready]
+command = "uv"
+args = ["run", "catalogready-mcp"]
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+

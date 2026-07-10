@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package
+        run: pip install -e .
+      - name: Run deterministic test suite (no network, no API keys)
+        run: python -m unittest discover -s tests -v
+      - name: Smoke-test the CLI on the bundled examples
+        run: |
+          catalogready catalog examples/messy-apparel.csv > /dev/null
+          catalogready audit https://example.com/products/cr-001 examples/demo-store/index.html --report /tmp/report.html
+          test -s /tmp/report.html

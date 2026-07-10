@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+.env
+CLAUDE.local.md
+
+.uv-cache/
+.DS_Store
+catalogready-report.html

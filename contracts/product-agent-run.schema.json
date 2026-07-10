@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catalogready.example/schemas/product-agent-run.schema.json",
+  "title": "CatalogReady bounded product-readiness agent run",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "operation",
+    "run_id",
+    "status",
+    "mode",
+    "provider",
+    "evidence_record",
+    "readiness",
+    "findings",
+    "plan",
+    "merchant_questions",
+    "proposed_changes",
+    "validation",
+    "trace",
+    "limits",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "operation": { "const": "run_product_readiness_agent" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "resumed_from": { "type": ["string", "null"] },
+    "status": {
+      "enum": ["needs_input", "completed", "ready_for_approval", "needs_review"]
+    },
+    "mode": { "enum": ["audit", "draft"] },
+    "provider": {
+      "type": "object",
+      "required": ["planner", "model"]
+    },
+    "evidence_record": {
+      "type": "object",
+      "required": ["source", "product", "evidence"]
+    },
+    "readiness": {
+      "type": "object",
+      "required": ["before", "validated_after"]
+    },
+    "findings": { "type": "array" },
+    "plan": { "type": "array", "maxItems": 5 },
+    "merchant_questions": { "type": "array" },
+    "proposed_changes": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["status", "accepted", "before_score", "after_score"]
+    },
+    "trace": { "type": "array", "maxItems": 8 },
+    "limits": {
+      "type": "object",
+      "required": ["max_steps", "steps_used", "storefront_writes_allowed"],
+      "properties": {
+        "storefront_writes_allowed": { "const": false }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "required": ["required", "status", "notice"]
+    }
+  }
+}

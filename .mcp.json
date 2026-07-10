@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "catalogready": {
+      "command": "uv",
+      "args": ["run", "catalogready-mcp"],
+      "env": {}
+    }
+  }
+}
+
