@@ -25,3 +25,21 @@ class DiscoveryAuditTests(unittest.TestCase):
         self.assertFalse(is_allowed(robots, "googlebot", "https://example.com/products/private"))
         self.assertTrue(is_allowed(robots, "googlebot", "https://example.com/products/public/1"))
 
+    def test_blocked_ai_search_crawlers_are_flagged(self) -> None:
+        from catalogready.discovery.robots import audit_robots
+
+        robots = (
+            "User-agent: PerplexityBot\nDisallow: /\n"
+            "User-agent: Claude-SearchBot\nDisallow: /\n"
+            "User-agent: GPTBot\nDisallow: /\n"
+        )
+        access, findings = audit_robots(robots, "https://example.com/products/1")
+        self.assertFalse(access["perplexitybot"])
+        self.assertFalse(access["claude_searchbot"])
+        self.assertTrue(access["googlebot"])
+        rule_ids = {item["rule_id"] for item in findings}
+        self.assertIn("SEO-ROBOTS-PERPLEXITYBOT", rule_ids)
+        self.assertIn("SEO-ROBOTS-CLAUDE_SEARCHBOT", rule_ids)
+        # Training bots are not search crawlers; blocking GPTBot is not a finding.
+        self.assertFalse(any("GPTBOT" in rule_id for rule_id in rule_ids))
+

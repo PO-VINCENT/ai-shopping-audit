@@ -44,10 +44,15 @@ def is_allowed(robots_txt: str, user_agent: str, url: str) -> bool:
 
 
 def audit_robots(robots_txt: str, url: str) -> tuple[dict[str, bool], list[Finding]]:
+    # Search/answer crawlers only. Training bots (GPTBot, ClaudeBot,
+    # Google-Extended) are deliberately excluded: blocking them does not
+    # affect answer inclusion per each vendor's documentation (docs/RULES.md).
     access = {
         "googlebot": is_allowed(robots_txt, "googlebot", url),
         "oai_searchbot": is_allowed(robots_txt, "oai-searchbot", url),
         "bingbot": is_allowed(robots_txt, "bingbot", url),
+        "perplexitybot": is_allowed(robots_txt, "perplexitybot", url),
+        "claude_searchbot": is_allowed(robots_txt, "claude-searchbot", url),
     }
     findings: list[Finding] = []
     for agent, allowed in access.items():

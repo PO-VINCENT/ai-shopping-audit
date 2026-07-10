@@ -24,7 +24,10 @@ Python 3.11+ is required. The test suite must pass offline.
 
 ## Proposing a new audit rule
 
-Rules are the heart of the project. A good rule proposal includes:
+Rules are the heart of the project. Read [docs/RULES.md](docs/RULES.md)
+first — it documents every implemented rule with its platform source and
+lists sourced candidate rules waiting for an implementation. A good rule
+proposal includes:
 
 1. A rule ID following the existing pattern (`CAT-`, `SEO-`, `GEO-`, `CLAIM-`, `AGENT-`).
 2. The observable evidence it checks (never an inference).

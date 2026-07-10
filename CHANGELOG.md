@@ -4,6 +4,20 @@
 
 ### Added
 
+- `docs/RULES.md` — the full rule reference with provenance. Every rule is
+  labeled Standard / Platform-derived / CatalogReady convention and cited
+  against primary sources verified in July 2026: Google merchant-listing
+  structured data and Merchant Center specs, OpenAI's crawler docs and
+  Agentic Commerce Protocol feed schema, Bing's rewritten Webmaster
+  Guidelines (Copilot grounding, noarchive/nocache effects) and MMC specs,
+  Perplexity's crawler docs and Merchant Program terms, and Anthropic's
+  crawler documentation. Includes 11 sourced candidate rules and documents
+  that DeepSeek publishes no crawler or site-owner guidance.
+- Robots access checks now cover all five documented AI search crawlers:
+  googlebot, bingbot, oai-searchbot, and the new perplexitybot and
+  claude-searchbot (`SEO-ROBOTS-PERPLEXITYBOT`, `SEO-ROBOTS-CLAUDE_SEARCHBOT`).
+  Training-only bots (GPTBot, ClaudeBot, Google-Extended) are deliberately
+  not flagged — blocking them does not affect answer inclusion.
 - Every dashboard audit now opens with a plain-language summary conclusion:
   a verdict sentence, cap explanations, finding counts, the top priority
   action, and the auto-fix outcome.

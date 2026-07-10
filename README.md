@@ -51,6 +51,10 @@ and with a score that survives scrutiny:
   missing structured data, or an unsupported high-risk claim hard-cap the
   number, no matter how complete everything else is.
 - **Every finding cites evidence** and carries a rule ID you can grep for.
+  [docs/RULES.md](docs/RULES.md) documents every rule with its source —
+  Google's merchant-listing requirements, OpenAI's Agentic Commerce feed
+  spec, Bing's Copilot grounding guidelines, and the published crawler
+  documentation of OpenAI, Perplexity, and Anthropic.
 
 See [docs/scoring-methodology.md](docs/scoring-methodology.md) for the full
 rubric and caps.
@@ -199,6 +203,7 @@ Rule proposals are the most valuable contribution — see
 with `python -m unittest discover -s tests -v`; it must pass offline.
 
 Architecture and module design: [docs/repository-design.md](docs/repository-design.md) ·
+Rules with sources: [docs/RULES.md](docs/RULES.md) ·
 Scoring: [docs/scoring-methodology.md](docs/scoring-methodology.md) ·
 Interoperability: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md) ·
 Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
