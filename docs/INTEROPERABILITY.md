@@ -185,10 +185,11 @@ variable. `deterministic` is the default provider and performs no external call.
 - The checked-in configuration contains no credentials.
 - The reference core performs no live crawling. Model-provider calls occur only
   when the caller explicitly selects a live provider.
-- The CLI `audit` command performs exactly one HTTP GET for the page the user
-  names, and only when no saved HTML file is supplied. This fetch lives in the
-  CLI adapter; the service layer and every other adapter accept supplied HTML
-  only, and the test suite runs without network access.
+- The CLI `audit` command and the local dashboard's `/v1/fetch` route perform
+  exactly one HTTP GET for the page the user names (http/https only), and only
+  when no HTML is supplied. These fetches live in the adapter layer; the
+  service layer accepts supplied HTML only, and the test suite runs without
+  network access.
 - Provider API keys are read only from server-side environment variables.
 - The browser extension never accepts or stores provider keys.
 - A host agent must obtain authorization before fetching private merchant data.

@@ -4,6 +4,12 @@
 
 ### Added
 
+- The dashboard now audits from a URL alone: a Fetch button and an
+  auto-fetch on Audit ask the local server to retrieve the page via the new
+  `/v1/fetch` route (one GET, http/https only, adapter-layer — the service
+  still accepts supplied HTML only). Bot-protection interstitials are
+  detected with a hint to paste the HTML instead; changing the URL clears
+  stale HTML.
 - `docs/RULES.md` — the full rule reference with provenance. Every rule is
   labeled Standard / Platform-derived / CatalogReady convention and cited
   against primary sources verified in July 2026: Google merchant-listing

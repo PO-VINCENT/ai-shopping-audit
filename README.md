@@ -144,7 +144,9 @@ your browser:
 uv run catalogready dashboard
 ```
 
-Paste a product page (or load the built-in good/bad demos) and audit it.
+Enter a product URL and press Audit — the local server fetches the page
+for you (one request). Or paste the HTML / load the built-in good/bad demos
+to stay fully offline.
 Every audit produces a plain-language summary conclusion, auto-drafted fix
 suggestions with an isolated preview validation, expandable per-pillar score
 explanations, inline merchant questions, a paste-ready JSON-LD patch, an

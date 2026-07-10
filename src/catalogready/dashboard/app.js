@@ -155,12 +155,43 @@ function runOptions(mode) {
   return options;
 }
 
+async function fetchHtml() {
+  const url = el("url").value.trim();
+  if (!url) {
+    setStatus("Enter a product URL to fetch.", true);
+    return false;
+  }
+  const button = el("fetch");
+  button.disabled = true;
+  setStatus("Fetching the page (one request via the local server)…");
+  try {
+    const payload = await api("/v1/fetch", { url });
+    el("html").value = payload.html;
+    if (/pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i.test(payload.html)) {
+      setStatus(
+        "The site served a bot-protection page instead of the product. " +
+        "Paste the page HTML from your browser (view-source) or use the extension.",
+        true
+      );
+      return true; // still auditable — it shows what a generic crawler would see
+    }
+    setStatus(`Fetched ${Math.round(payload.bytes / 1024)} KB. Ready to audit.`);
+    return true;
+  } catch (error) {
+    setStatus(error.message, true);
+    return false;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function runAgent(mode) {
   const url = el("url").value.trim();
-  if (!url || !el("html").value.trim()) {
-    setStatus("Provide a URL and the page HTML (or load a demo).", true);
+  if (!url) {
+    setStatus("Provide a product URL (or load a demo).", true);
     return;
   }
+  if (!el("html").value.trim() && !(await fetchHtml())) return;
   const button = el("run");
   button.disabled = true;
   setStatus(mode === "draft" ? "Drafting evidence-backed fixes…" : "Auditing locally…");
@@ -476,6 +507,15 @@ el("demo-bad").addEventListener("click", () => {
   el("html").value = DEMO_BAD_HTML;
   state.answers = {};
   setStatus("Bad demo loaded. Press Audit page.");
+});
+
+el("fetch").addEventListener("click", fetchHtml);
+
+el("url").addEventListener("input", () => {
+  // A new URL means the pasted/fetched HTML no longer matches it.
+  if (state.result && el("url").value.trim() !== (state.result.input || {}).url) {
+    el("html").value = "";
+  }
 });
 
 el("run").addEventListener("click", () => {

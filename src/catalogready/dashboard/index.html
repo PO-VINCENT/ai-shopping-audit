@@ -20,11 +20,15 @@
     <section class="input-card">
       <h2>Product page</h2>
       <label>URL
-        <input id="url" type="url" placeholder="https://store.example/products/item" spellcheck="false">
+        <span class="url-row">
+          <input id="url" type="url" placeholder="https://store.example/products/item" spellcheck="false">
+          <button class="secondary" id="fetch" type="button"
+            title="The local server fetches this one page (a single request)">Fetch</button>
+        </span>
       </label>
       <label>Page HTML
         <textarea id="html" rows="9" spellcheck="false"
-          placeholder="Paste the rendered product-page HTML. Nothing leaves this machine."></textarea>
+          placeholder="Left empty? Audit fetches the page for you (one request via the local server). Or paste the rendered HTML to stay fully offline."></textarea>
       </label>
       <div class="demo-row">
         <button class="link" id="demo-good" type="button">Load good demo (97/100)</button>

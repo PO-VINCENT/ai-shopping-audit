@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from catalogready.local_server import _DASHBOARD_DIR, _STATIC_FILES
+from catalogready.local_server import _DASHBOARD_DIR, _STATIC_FILES, fetch_url_payload
 from catalogready.service import dispatch
 
 
@@ -20,6 +20,11 @@ class DashboardTests(unittest.TestCase):
             self.assertNotIn("https://cdn", content)
             self.assertNotIn("src=\"http", content)
             self.assertNotIn("@import", content)
+
+    def test_fetch_route_rejects_non_http_schemes(self) -> None:
+        for url in ("file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)", ""):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                fetch_url_payload(url)
 
     def test_report_route_operation_renders_html(self) -> None:
         agent_result = dispatch(

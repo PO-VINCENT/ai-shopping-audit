@@ -55,6 +55,9 @@ details { margin: .8rem 0; }
 summary { cursor: pointer; font-size: .85rem; color: var(--muted); }
 .provider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
 .demo-row { display: flex; gap: 1rem; margin: .2rem 0 .6rem; flex-wrap: wrap; }
+.url-row { display: flex; gap: .5rem; }
+.url-row input { flex: 1; }
+.url-row .secondary { flex: 0 0 auto; margin-top: .3rem; }
 
 button { font: inherit; cursor: pointer; }
 .primary {

@@ -19,9 +19,30 @@ from urllib.parse import urlparse
 from .model_providers import ProviderError, provider_status
 from .service import dispatch
 from .env import load_local_env
+from .fetch import fetch_page
 
 
 MAX_BODY_BYTES = 8 * 1024 * 1024
+
+
+def fetch_url_payload(url: str) -> dict[str, Any]:
+    """Fetch one user-named product page for the dashboard.
+
+    Adapter-level only: the service layer still accepts supplied HTML.
+    Exactly one GET per request, http(s) schemes only.
+    """
+
+    url = str(url or "").strip()
+    if not url.startswith(("http://", "https://")):
+        raise ValueError("url must start with http:// or https://")
+    html = fetch_page(url)
+    return {
+        "schema_version": "1.0",
+        "operation": "fetch_page",
+        "url": url,
+        "html": html,
+        "bytes": len(html.encode("utf-8")),
+    }
 
 _DASHBOARD_DIR = Path(__file__).parent / "dashboard"
 _STATIC_FILES = {
@@ -117,6 +138,17 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             body = self._body()
+            if path == "/v1/fetch":
+                try:
+                    self._send_json(HTTPStatus.OK, fetch_url_payload(body.get("url", "")))
+                except (OSError, ValueError) as exc:
+                    if isinstance(exc, ValueError):
+                        raise
+                    self._send_json(
+                        HTTPStatus.BAD_GATEWAY,
+                        {"detail": f"Could not fetch the page: {exc}"},
+                    )
+                return
             if path == "/v1/execute":
                 operation = str(body.get("operation", ""))
                 arguments = body.get("arguments") or {}
