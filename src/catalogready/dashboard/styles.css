@@ -109,6 +109,39 @@ button { font: inherit; cursor: pointer; }
   border-left: 4px solid var(--bad); background: var(--bg); padding: .7rem 1rem;
   border-radius: 0 10px 10px 0; margin-top: .9rem; font-size: .88rem;
 }
+.summary {
+  margin-top: 1rem; padding: .9rem 1.1rem; border-radius: 10px; background: var(--bg);
+  border: 1px solid var(--border); font-size: .92rem;
+}
+.summary .verdict { font-weight: 600; }
+.summary ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.summary li { margin: .15rem 0; font-size: .87rem; }
+.summary .autofix { color: var(--good); font-weight: 600; }
+
+.chat-card {
+  margin-top: 1.4rem; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1rem 1.1rem; background: var(--bg);
+}
+.chat-card h3 { margin: 0 0 .6rem; }
+.chat-log { max-height: 320px; overflow-y: auto; }
+.chat-log:empty { display: none; }
+.msg { margin: .45rem 0; display: flex; }
+.msg.user { justify-content: flex-end; }
+.msg .bubble {
+  max-width: 85%; padding: .5rem .75rem; border-radius: 10px; font-size: .86rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+.msg.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 3px; }
+.msg.agent .bubble {
+  background: var(--panel); border: 1px solid var(--border); border-bottom-left-radius: 3px;
+  font-family: ui-monospace, Menlo, monospace; font-size: .78rem;
+}
+.msg.agent .mode { display: block; color: var(--muted); font-size: .68rem; margin-top: .3rem;
+  font-family: -apple-system, sans-serif; }
+.chat-row { display: flex; gap: .5rem; margin-top: .6rem; }
+.chat-row input { flex: 1; margin-top: 0; }
+.chat-row .secondary { flex: 0 0 auto; }
+
 .trace-wrap { margin: 1rem 0 .4rem; }
 .trace { font-size: .82rem; color: var(--muted); }
 .trace div { padding: .12rem 0; }

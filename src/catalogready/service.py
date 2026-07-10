@@ -16,6 +16,7 @@ from .optimization.pipeline import (
     optimize_shopify_live,
     optimize_shopify_payload,
 )
+from .qa import answer_audit_question
 from .reporting.html import render_html_report
 from .reporting.render import render_markdown_report
 from .visibility.metrics import score_visibility_snapshots
@@ -35,6 +36,7 @@ def describe_agent() -> dict[str, Any]:
             "score_visibility_snapshots",
             "render_markdown_report",
             "render_html_report",
+            "answer_audit_question",
             "optimize_product_html",
             "optimize_product_csv",
             "optimize_shopify_payload",
@@ -131,6 +133,16 @@ def dispatch(operation: str, arguments: dict[str, Any] | None = None) -> dict[st
             "operation": "render_html_report",
             "html": render_html_report(audit_result),
         }
+    if operation == "answer_audit_question":
+        audit_result = arguments.get("audit_result")
+        if not isinstance(audit_result, dict):
+            raise ValueError("audit_result must be an object")
+        return answer_audit_question(
+            audit_result,
+            str(arguments.get("question", "")),
+            provider_name=str(arguments.get("provider", "deterministic")),
+            model=str(arguments.get("model", "")),
+        )
     if operation == "optimize_product_html":
         return optimize_product_html(
             str(arguments.get("url", "")),
@@ -171,6 +183,7 @@ def dumps(value: dict[str, Any]) -> str:
 
 
 __all__ = [
+    "answer_audit_question",
     "audit_catalog",
     "audit_discovery_bundle",
     "audit_page_html",

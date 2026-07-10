@@ -74,6 +74,8 @@
         </div>
         <div id="caps"></div>
 
+        <div id="summary" class="summary"></div>
+
         <div class="trace-wrap"><div id="trace" class="trace"></div></div>
 
         <nav class="tabs" role="tablist">
@@ -111,6 +113,18 @@
             <thead><tr><th>ID</th><th>Field</th><th>Value</th><th>Source</th></tr></thead>
             <tbody id="evidence"></tbody>
           </table>
+        </section>
+
+        <section class="chat-card">
+          <h3>Ask the agent</h3>
+          <div id="chat-log" class="chat-log" aria-live="polite"></div>
+          <div class="chat-row">
+            <input id="chat-input" type="text" spellcheck="false"
+              placeholder="e.g. why is structured data low? · what should I fix first?">
+            <button class="secondary" id="chat-send" type="button">Ask</button>
+          </div>
+          <p class="note">Answers come from the audit result only. Select a model provider
+          above for open-ended questions; otherwise answers are deterministic.</p>
         </section>
 
         <div class="actions">

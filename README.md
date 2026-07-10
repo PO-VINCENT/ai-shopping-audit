@@ -140,10 +140,12 @@ your browser:
 uv run catalogready dashboard
 ```
 
-Paste a product page (or load the built-in good/bad demos), audit it, answer
-the merchant questions inline, draft evidence-backed fixes with an isolated
-preview validation, copy the recommended JSON-LD, and download the HTML
-report. Everything runs locally; the page never asks for API keys.
+Paste a product page (or load the built-in good/bad demos) and audit it.
+Every audit produces a plain-language summary conclusion, auto-drafted fix
+suggestions with an isolated preview validation, expandable per-pillar score
+explanations, inline merchant questions, a paste-ready JSON-LD patch, an
+"Ask the agent" chat window, and a downloadable HTML report. Everything runs
+locally; the page never asks for API keys.
 
 ## Use it from an AI agent (MCP)
 

@@ -4,6 +4,17 @@
 
 ### Added
 
+- Every dashboard audit now opens with a plain-language summary conclusion:
+  a verdict sentence, cap explanations, finding counts, the top priority
+  action, and the auto-fix outcome.
+- Fix suggestions are drafted automatically after every audit: the agent
+  re-runs in draft mode in the background and the Fixes tab fills with
+  reversible changes, the validated before/after score, and the JSON-LD patch.
+- An "Ask the agent" chat window in the dashboard. Questions are answered
+  from the audit result — deterministically by default, or by the selected
+  BYO provider grounded strictly in the audit JSON (`/v1/agent/ask`,
+  `answer_audit_question` service operation, shared `qa.py` module also
+  used by the terminal chat).
 - Dashboard pillars are now self-explanatory: click any pillar to expand a
   plain-language description of what it measures and the exact ✓/✗ checks
   behind its points, plus a note on how the 100-point total and caps work.

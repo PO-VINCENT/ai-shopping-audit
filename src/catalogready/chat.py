@@ -19,8 +19,9 @@ from pathlib import Path
 from typing import Any
 
 from .fetch import fetch_page
-from .model_providers import ProviderError, create_provider, provider_status
-from .reporting.html import PILLAR_LABELS, render_html_report
+from .model_providers import provider_status
+from .qa import answer_audit_question
+from .reporting.html import render_html_report
 from .reporting.terminal import (
     render_findings,
     render_questions,
@@ -51,20 +52,6 @@ Commands
 Anything else is treated as a question about the current audit, e.g.
   why is media & variants low?   what should I fix first?
 """
-
-_ANSWER_SCHEMA = {
-    "type": "object",
-    "required": ["answer"],
-    "properties": {"answer": {"type": "string"}},
-}
-
-_ASSISTANT_SYSTEM = (
-    "You are the CatalogReady audit assistant. Answer the merchant's question "
-    "using ONLY the supplied audit JSON. Quote scores, rule IDs, and evidence "
-    "from it. If the answer is not in the JSON, say exactly that. Never invent "
-    "product facts, rankings, or guarantees."
-)
-
 
 class ChatSession:
     def __init__(self, use_color: bool = False) -> None:
@@ -178,80 +165,15 @@ class ChatSession:
 
     # ---- free text --------------------------------------------------
 
-    def _pillar_for(self, text: str) -> str | None:
-        lowered = text.lower()
-        for key, label in PILLAR_LABELS.items():
-            if label.lower() in lowered or key.replace("_", " ") in lowered:
-                return key
-        return None
-
-    def explain_pillar(self, key: str) -> str:
-        readiness = (self.result or {}).get("readiness", {}).get("before") or {}
-        section = (readiness.get("components") or {}).get(key)
-        if not section:
-            return f"No component named {key} in the current result."
-        label = PILLAR_LABELS.get(key, key)
-        lines = [f"{label}: {section.get('score')}/{section.get('max_score')}"]
-        for check, passed in (section.get("checks") or {}).items():
-            mark = "✓" if passed else "✗"
-            lines.append(f"  {mark} {check.replace('_', ' ')}")
-        failed = [check for check, passed in (section.get("checks") or {}).items() if not passed]
-        if failed:
-            lines.append("Points are lost on the ✗ checks above; /findings shows the fixes.")
-        return "\n".join(lines)
-
-    def deterministic_answer(self, text: str) -> str:
+    def ask(self, text: str) -> str:
         if not self.result:
             return "Load a page first with /audit <url> [saved.html]."
-        lowered = text.lower()
-        pillar = self._pillar_for(lowered)
-        if pillar:
-            return self.explain_pillar(pillar)
-        if any(term in lowered for term in ("fix", "improve", "next", "priorit")):
-            plan = self.result.get("plan") or []
-            if plan:
-                lines = ["Highest-priority actions (severity-first):"]
-                lines.extend(
-                    f"  {item.get('priority')}. {item.get('action')} ({item.get('finding_rule_id')})"
-                    for item in plan
-                )
-                return "\n".join(lines)
-            return render_findings(self.result.get("findings") or [], self.use_color)
-        if "score" in lowered or "why" in lowered:
-            readiness = self.result.get("readiness", {}).get("before") or {}
-            reasons = readiness.get("cap_reasons") or []
-            lines = [render_score_card(self.result, use_color=self.use_color)]
-            if reasons:
-                lines.append("The score is capped because: " + " ".join(reasons))
-            return "\n".join(lines)
-        if "question" in lowered or "answer" in lowered:
-            return render_questions(self.result.get("merchant_questions") or [], self.use_color)
-        return (
-            "I can explain pillars (e.g. 'why is structured data low?'), list fixes "
-            "('what should I fix?'), or show /findings, /questions, /jsonld, /report. "
-            "Configure /provider <name> for open-ended questions."
-        )
-
-    def model_answer(self, text: str) -> str:
-        provider = create_provider(self.provider_name, self.model)
-        if provider is None:
-            return self.deterministic_answer(text)
-        result = self.result or {}
-        context = {
-            "readiness": (result.get("readiness") or {}).get("before"),
-            "findings": result.get("findings"),
-            "merchant_questions": result.get("merchant_questions"),
-            "product": (result.get("evidence_record") or {}).get("product"),
-            "plan": result.get("plan"),
-        }
-        user = (
-            f"Question: {text}\n\nAudit JSON:\n{json.dumps(context, ensure_ascii=False)}"
-        )
-        try:
-            answer = provider.generate_json(_ASSISTANT_SYSTEM, user, _ANSWER_SCHEMA)
-        except ProviderError as error:
-            return f"Provider error: {error}. Falling back:\n{self.deterministic_answer(text)}"
-        return str(answer.get("answer") or "").strip() or self.deterministic_answer(text)
+        return answer_audit_question(
+            self.result,
+            text,
+            provider_name=self.provider_name,
+            model=self.model,
+        )["answer"]
 
     # ---- dispatch ---------------------------------------------------
 
@@ -293,9 +215,7 @@ class ChatSession:
             return f"Unknown command {command}. Try /help."
         if re.match(r"^https?://", line):
             return self.cmd_audit(line.split())
-        if self.provider_name != "deterministic":
-            return self.model_answer(line)
-        return self.deterministic_answer(line)
+        return self.ask(line)
 
 
 def main() -> None:

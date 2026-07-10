@@ -106,6 +106,7 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler contract
         routes = {
             "/v1/agent/html": "run_product_agent_html",
+            "/v1/agent/ask": "answer_audit_question",
             "/v1/report/html": "render_html_report",
             "/v1/optimize/html": "optimize_product_html",
             "/v1/optimize/csv": "optimize_product_csv",

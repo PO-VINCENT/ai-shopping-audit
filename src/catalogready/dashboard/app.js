@@ -110,7 +110,7 @@ const DEMO_BAD_HTML = `<!doctype html>
 </html>`;
 
 const el = (id) => document.getElementById(id);
-const state = { result: null, answers: {} };
+const state = { result: null, draft: null, answers: {} };
 
 /* ---------- helpers ---------- */
 
@@ -165,13 +165,36 @@ async function runAgent(mode) {
   button.disabled = true;
   setStatus(mode === "draft" ? "Drafting evidence-backed fixes…" : "Auditing locally…");
   try {
-    state.result = await api("/v1/agent/html", runOptions(mode));
-    render(state.result);
+    const result = await api("/v1/agent/html", runOptions(mode));
+    if (mode === "draft") {
+      state.draft = result;
+    } else {
+      state.result = result;
+      state.draft = null;
+    }
+    render(state.result || result);
+    if (mode === "draft") {
+      renderFixes(result);
+      renderSummary();
+    }
     setStatus("");
+    if (mode === "audit") autoDraft();
   } catch (error) {
     setStatus(error.message, true);
   } finally {
     button.disabled = false;
+  }
+}
+
+async function autoDraft() {
+  // Fix suggestions are drafted automatically after every audit. Deterministic,
+  // in-memory, and never written anywhere — the Fixes tab shows the outcome.
+  try {
+    state.draft = await api("/v1/agent/html", runOptions("draft"));
+    renderFixes(state.draft);
+    renderSummary();
+  } catch (error) {
+    /* auto-suggestions are best-effort; the manual Draft button still works */
   }
 }
 
@@ -294,6 +317,54 @@ function renderFixes(result) {
   if (jsonldChange) el("jsonld").textContent = JSON.stringify(jsonldChange.value, null, 2);
 }
 
+function renderSummary() {
+  const result = state.result;
+  if (!result) return;
+  const readiness = (result.readiness || {}).before || {};
+  const score = readiness.score || 0;
+  const findings = result.findings || [];
+  const high = findings.filter((f) => f.severity === "high").length;
+  const medium = findings.filter((f) => f.severity === "medium").length;
+  const blocking = (result.merchant_questions || []).filter((q) => q.blocking).length;
+
+  let verdict;
+  if (score >= 80 && (readiness.cap_reasons || []).length === 0) {
+    verdict = "This page is ready for AI shopping agents — its product data is machine-readable and evidence-backed.";
+  } else if (score >= 50) {
+    verdict = "This page is partially readable by AI shopping agents; the gaps below limit how confidently they can use it.";
+  } else {
+    verdict = "This page is largely invisible or untrustworthy to AI shopping agents in its current state.";
+  }
+
+  const points = [];
+  if ((readiness.cap_reasons || []).length) {
+    points.push(`The score is hard-capped at ${readiness.safety_cap}: ${readiness.cap_reasons.join(" ")}`);
+  }
+  if (high || medium) {
+    points.push(`${high} critical and ${medium} recommended findings need attention — see the Findings tab.`);
+  }
+  if (blocking) {
+    points.push(`${blocking} blocking fact${blocking > 1 ? "s" : ""} only the merchant can supply — see Merchant questions.`);
+  }
+  const topAction = (result.plan || [])[0];
+  if (topAction) {
+    points.push(`Start here: ${topAction.action}`);
+  }
+  const validation = (state.draft || {}).validation || {};
+  if ((state.draft?.proposed_changes || []).length && validation.after_score != null) {
+    points.push(
+      `<span class="autofix">Auto-drafted ${state.draft.proposed_changes.length} reversible fix(es): ` +
+      `validated preview ${validation.before_score} → ${validation.after_score} — see the Fixes tab.</span>`
+    );
+  }
+
+  el("summary").innerHTML =
+    `<div class="verdict">${escapeHtml(verdict)} (${score}/100, ${escapeHtml(readiness.status || "")})</div>` +
+    (points.length
+      ? `<ul>${points.map((p) => `<li>${p.startsWith("<span") ? p : escapeHtml(p)}</li>`).join("")}</ul>`
+      : "");
+}
+
 function renderEvidence(record) {
   el("evidence").innerHTML = (record.evidence || [])
     .map(
@@ -317,8 +388,49 @@ function render(result) {
   renderTrace(result);
   renderFindings(result.findings || []);
   renderQuestions(result.merchant_questions || []);
-  renderFixes(result);
+  renderFixes(state.draft || result);
   renderEvidence(result.evidence_record || {});
+  renderSummary();
+}
+
+/* ---------- chat ---------- */
+
+function appendMessage(role, text, mode) {
+  const log = el("chat-log");
+  const modeTag = mode ? `<span class="mode">answered by ${escapeHtml(mode)}</span>` : "";
+  log.insertAdjacentHTML(
+    "beforeend",
+    `<div class="msg ${role}"><div class="bubble">${escapeHtml(text)}${modeTag}</div></div>`
+  );
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendChat() {
+  const input = el("chat-input");
+  const question = input.value.trim();
+  if (!question) return;
+  const context = state.draft || state.result;
+  if (!context) {
+    appendMessage("agent", "Run an audit first, then ask me about the result.");
+    return;
+  }
+  input.value = "";
+  appendMessage("user", question);
+  el("chat-send").disabled = true;
+  try {
+    const reply = await api("/v1/agent/ask", {
+      audit_result: context,
+      question,
+      provider: el("provider").value,
+      model: el("model").value.trim(),
+    });
+    appendMessage("agent", reply.answer, reply.mode);
+  } catch (error) {
+    appendMessage("agent", `Error: ${error.message}`);
+  } finally {
+    el("chat-send").disabled = false;
+    input.focus();
+  }
 }
 
 /* ---------- downloads ---------- */
@@ -380,6 +492,11 @@ el("resume").addEventListener("click", () => {
 });
 
 el("draft").addEventListener("click", () => runAgent("draft"));
+
+el("chat-send").addEventListener("click", sendChat);
+el("chat-input").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") sendChat();
+});
 
 el("copy-jsonld").addEventListener("click", (event) => {
   navigator.clipboard.writeText(el("jsonld").textContent).then(() => {
