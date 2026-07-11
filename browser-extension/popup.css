@@ -25,6 +25,11 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 }
 .tagline { color: var(--muted); font-size: .75rem; }
 .link { border: 0; background: none; color: var(--accent); cursor: pointer; font-size: .8rem; text-decoration: underline; padding: 0; }
+.header-side { display: flex; align-items: center; gap: .5rem; }
+.lang-select {
+  width: auto; margin-top: 0; padding: .2rem .35rem; font-size: .72rem;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--fg);
+}
 
 .settings { background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: .6rem .7rem; margin-bottom: .6rem; }
 label { display: block; font-size: .75rem; color: var(--muted); margin: .35rem 0; }

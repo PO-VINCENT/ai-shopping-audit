@@ -4,6 +4,10 @@
 
 ### Added
 
+- The browser-extension popup is multilingual like the dashboard: default
+  follows the browser language (English / 简体中文), a header selector
+  overrides and persists it, and switching re-renders the current result.
+  Static-key coverage is test-enforced.
 - GEO-PRODUCT-003: the JSON-LD product name must appear in the visible
   page title or text. Catches feed-artifact markup names (e.g. a real
   marketplace page whose markup names a treadmill "Everfit 1EA") that AI

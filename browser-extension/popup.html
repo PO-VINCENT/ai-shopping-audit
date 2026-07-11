@@ -8,34 +8,39 @@
 <body>
   <header>
     <div class="brand"><span class="mark">CR</span><strong>CatalogReady</strong>
-      <span class="tagline">AI readiness score</span></div>
-    <button class="link" id="settings-toggle" type="button">Settings</button>
+      <span class="tagline" data-i18n="tagline"></span></div>
+    <div class="header-side">
+      <select id="lang" class="lang-select" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="zh">中文</option>
+      </select>
+      <button class="link" id="settings-toggle" type="button" data-i18n="settings"></button>
+    </div>
   </header>
 
   <section id="settings" class="settings" hidden>
-    <label>Local server
+    <label><span data-i18n="serverLabel"></span>
       <input id="server" type="url" value="http://127.0.0.1:8080" spellcheck="false">
     </label>
     <div class="grid2">
-      <label>Provider
+      <label><span data-i18n="providerLabel"></span>
         <select id="provider">
-          <option value="deterministic">Offline / deterministic</option>
+          <option value="deterministic" data-i18n="providerOffline"></option>
           <option value="openai">OpenAI</option>
           <option value="gemini">Gemini</option>
           <option value="anthropic">Claude</option>
           <option value="deepseek">DeepSeek</option>
         </select>
       </label>
-      <label>Model ID
-        <input id="model" type="text" placeholder="Server default" spellcheck="false">
+      <label><span data-i18n="modelLabel"></span>
+        <input id="model" type="text" data-i18n-placeholder="modelPlaceholder" spellcheck="false">
       </label>
     </div>
-    <p class="note">Keys stay in the local server environment — this extension never
-    asks for or stores them. Start the server with
-    <code>uv run catalogready dashboard --no-open</code>.</p>
+    <p class="note"><span data-i18n="settingsNote"></span>
+    <code>uv run catalogready dashboard --no-open</code></p>
   </section>
 
-  <button class="primary" id="analyze" type="button">Score this product page</button>
+  <button class="primary" id="analyze" type="button" data-i18n="analyze"></button>
   <div id="status" class="status" role="status" aria-live="polite"></div>
 
   <main id="result" hidden>
@@ -51,44 +56,44 @@
     <div id="caps"></div>
 
     <details open>
-      <summary>Findings <span id="findings-count" class="count"></span></summary>
+      <summary><span data-i18n="findings"></span> <span id="findings-count" class="count"></span></summary>
       <div id="findings"></div>
     </details>
 
     <details id="questions-block">
-      <summary>Merchant questions <span id="questions-count" class="count"></span></summary>
-      <p class="note">CatalogReady never invents these facts. Fill in what you know
-      and re-run.</p>
+      <summary><span data-i18n="questions"></span> <span id="questions-count" class="count"></span></summary>
+      <p class="note" data-i18n="questionsNote"></p>
       <div id="questions"></div>
-      <button class="secondary" id="resume" type="button" hidden>Re-run with answers</button>
+      <button class="secondary" id="resume" type="button" hidden data-i18n="resume"></button>
     </details>
 
     <details id="fixes-block">
-      <summary>Fix suggestions</summary>
+      <summary data-i18n="fixes"></summary>
       <div id="changes"></div>
       <div id="validation"></div>
       <div id="jsonld-wrap" hidden>
         <div class="row-between">
-          <span class="note">Recommended Product JSON-LD</span>
-          <button class="secondary" id="copy-jsonld" type="button">Copy</button>
+          <span class="note" data-i18n="jsonldTitle"></span>
+          <button class="secondary" id="copy-jsonld" type="button" data-i18n="copy"></button>
         </div>
         <pre id="jsonld"></pre>
       </div>
     </details>
 
     <div class="ask-row">
-      <input id="ask-input" type="text" placeholder="Ask the agent, e.g. what should I fix first?" spellcheck="false">
-      <button class="secondary" id="ask-send" type="button">Ask</button>
+      <input id="ask-input" type="text" data-i18n-placeholder="askPlaceholder" spellcheck="false">
+      <button class="secondary" id="ask-send" type="button" data-i18n="ask"></button>
     </div>
     <div id="ask-log"></div>
 
     <div class="actions">
-      <button class="secondary" id="download-report" type="button">HTML report</button>
-      <button class="secondary" id="copy-json" type="button">Copy JSON</button>
+      <button class="secondary" id="download-report" type="button" data-i18n="downloadReport"></button>
+      <button class="secondary" id="copy-json" type="button" data-i18n="copyJson"></button>
     </div>
   </main>
 
-  <footer>Read-only · no storefront writes · runs on your machine</footer>
+  <footer data-i18n="footer"></footer>
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

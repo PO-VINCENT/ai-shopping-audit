@@ -7,29 +7,6 @@
 const $ = (id) => document.getElementById(id);
 const state = { page: null, result: null, draft: null, answers: {} };
 
-const PILLAR_LABELS = {
-  product_identity: "Product identity",
-  offer_completeness: "Offer completeness",
-  structured_data: "Structured data",
-  decision_evidence: "Decision evidence",
-  media_variants: "Media & variants",
-  claim_grounding: "Claim grounding",
-};
-
-const CHECK_LABELS = {
-  stable_identifier: "stable identifier (SKU / GTIN / MPN)",
-  complete_offer_markup: "complete Offer markup",
-  product_node: "Product JSON-LD present",
-  valid_json_ld: "JSON-LD parses",
-  substantive_page: "120+ words visible",
-  evidence_topics: "3+ evidence topics",
-  review_evidence: "rating + review count",
-  variant_attribute: "variant attribute",
-  variant_identity: "variant identifier",
-  no_high_risk_claims: "no high-risk claims",
-  no_unsupported_claims: "no unsupported claims",
-};
-
 function escapeHtml(value) {
   const div = document.createElement("div");
   div.textContent = String(value == null ? "" : value);
@@ -90,13 +67,13 @@ async function saveSettings() {
 async function currentPage() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.id || !/^https?:/.test(tab.url || "")) {
-    throw new Error("Open a public product page, then click the extension.");
+    throw new Error(i18n.t("errNoPage"));
   }
   const results = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: () => ({ url: window.location.href, html: document.documentElement.outerHTML }),
   });
-  if (!results[0]?.result?.html) throw new Error("The page HTML could not be read.");
+  if (!results[0]?.result?.html) throw new Error(i18n.t("errNoHtml"));
   return results[0].result;
 }
 
@@ -124,14 +101,12 @@ async function analyze() {
       const health = await fetch(`${serverBase()}/health`);
       if (!health.ok) throw new Error();
     } catch (error) {
-      throw new Error(
-        `Cannot reach ${serverBase()}. Start it with: uv run catalogready dashboard --no-open`
-      );
+      throw new Error(i18n.t("errServer", serverBase()));
     }
-    setStatus("Reading this page…");
+    setStatus(i18n.t("statusReading"));
     state.page = await currentPage();
     state.answers = {};
-    setStatus("Auditing locally…");
+    setStatus(i18n.t("statusAuditing"));
     state.result = await runAgent("audit");
     state.draft = null;
     render();
@@ -151,7 +126,7 @@ async function resume() {
   });
   const button = $("resume");
   button.disabled = true;
-  setStatus("Re-running with your answers…");
+  setStatus(i18n.t("statusRerunning"));
   try {
     state.result = await runAgent("audit");
     state.draft = null;
@@ -198,12 +173,12 @@ function renderPillars(components) {
         .map(
           ([check, passed]) =>
             `<li class="${passed ? "pass" : "fail"}"><span>${passed ? "✓" : "✗"}</span> ` +
-            `${escapeHtml(CHECK_LABELS[check] || check.replace(/_/g, " "))}</li>`
+            `${escapeHtml(i18n.checkLabel(check))}</li>`
         )
         .join("");
       return (
         `<div><button class="pillar" type="button">` +
-        `<span>${escapeHtml(PILLAR_LABELS[key] || key)}</span>` +
+        `<span>${escapeHtml(i18n.pillarLabel(key))}</span>` +
         `<span class="bar"><i style="width:${Math.round(ratio * 100)}%;background:${scoreColor(ratio)}"></i></span>` +
         `<span>${section.score}/${max}</span></button>` +
         `<div class="pillar-detail" hidden><ul>${checks}</ul></div></div>`
@@ -220,30 +195,36 @@ function renderSummary() {
   const blocking = (state.result.merchant_questions || []).filter((q) => q.blocking).length;
   let verdict;
   if (score >= 80 && !(readiness.cap_reasons || []).length) {
-    verdict = "Ready for AI shopping agents.";
+    verdict = i18n.t("verdictReady");
   } else if (score >= 50) {
-    verdict = "Partially readable by AI shopping agents.";
+    verdict = i18n.t("verdictPartial");
   } else {
-    verdict = "Largely invisible or untrustworthy to AI shopping agents.";
+    verdict = i18n.t("verdictPoor");
   }
   const points = [];
   if ((readiness.cap_reasons || []).length) {
-    points.push(`Capped at ${readiness.safety_cap}: ${readiness.cap_reasons.join(" ")}`);
+    points.push(escapeHtml(i18n.t("summaryCapped", readiness.safety_cap, readiness.cap_reasons.join(" "))));
   }
-  if (high) points.push(`${high} critical finding${high > 1 ? "s" : ""}.`);
-  if (blocking) points.push(`${blocking} blocking merchant question${blocking > 1 ? "s" : ""}.`);
+  if (high) points.push(escapeHtml(i18n.t("summaryCritical", high)));
+  if (blocking) points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
   const validation = (state.draft || {}).validation || {};
   if ((state.draft?.proposed_changes || []).length && validation.after_score != null) {
     points.push(
-      `<span class="autofix">${state.draft.proposed_changes.length} auto-drafted fix(es): ` +
-      `${validation.before_score} → ${validation.after_score} validated.</span>`
+      `<span class="autofix">` +
+      escapeHtml(
+        i18n.t(
+          "summaryAutofix",
+          state.draft.proposed_changes.length,
+          validation.before_score,
+          validation.after_score
+        )
+      ) +
+      `</span>`
     );
   }
   $("summary").innerHTML =
     `<div class="verdict">${escapeHtml(verdict)} (${score}/100)</div>` +
-    (points.length
-      ? `<ul>${points.map((p) => `<li>${p.startsWith("<span") ? p : escapeHtml(p)}</li>`).join("")}</ul>`
-      : "");
+    (points.length ? `<ul>${points.map((p) => `<li>${p}</li>`).join("")}</ul>` : "");
 }
 
 function renderFindings() {
@@ -259,7 +240,7 @@ function renderFindings() {
             `<p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
         )
         .join("")
-    : "<p class='note'>No findings. Everything checked is machine-readable.</p>";
+    : `<p class='note'>${escapeHtml(i18n.t("noFindings"))}</p>`;
   $("findings-count").textContent = String(sorted.length);
 }
 
@@ -269,11 +250,11 @@ function renderQuestions() {
     .map(
       (item) =>
         `<div class="question"><div>` +
-        (item.blocking ? `<span class="blocking-tag">blocking</span>` : "") +
+        (item.blocking ? `<span class="blocking-tag">${escapeHtml(i18n.t("blocking"))}</span>` : "") +
         `${escapeHtml(item.question)}</div>` +
         `<div class="why">${escapeHtml(item.reason)}</div>` +
         `<input data-field="${escapeHtml(item.field)}" type="text"` +
-        ` placeholder="Verified ${escapeHtml(item.field)}" value="${escapeHtml(state.answers[item.field] || "")}"></div>`
+        ` placeholder="${escapeHtml(i18n.t("answerPlaceholder", item.field))}" value="${escapeHtml(state.answers[item.field] || "")}"></div>`
     )
     .join("");
   $("resume").hidden = !questions.length;
@@ -288,12 +269,11 @@ function renderFixes() {
     ? changes
         .map((item) => `<div class="change"><strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.operation)}</div>`)
         .join("")
-    : "<p class='note'>Fix suggestions are drafted automatically after the audit.</p>";
+    : `<p class='note'>${escapeHtml(i18n.t("fixesPending"))}</p>`;
   const validation = source.validation || {};
   $("validation").innerHTML =
     changes.length && validation.after_score != null
-      ? `<div class="delta">Validated preview: ${validation.before_score} → ${validation.after_score}. ` +
-        `Nothing was written to your store.</div>`
+      ? `<div class="delta">${escapeHtml(i18n.t("validationLine", validation.before_score, validation.after_score))}</div>`
       : "";
   const jsonldChange = changes.find((item) => item.operation === "replace_product_jsonld");
   $("jsonld-wrap").hidden = !jsonldChange;
@@ -309,7 +289,7 @@ function render() {
   renderDial(readiness.score || 0);
   renderPillars(readiness.components || {});
   $("caps").innerHTML = (readiness.cap_reasons || []).length
-    ? `<div class="cap"><strong>Score capped at ${readiness.safety_cap}.</strong> ` +
+    ? `<div class="cap"><strong>${escapeHtml(i18n.t("capBanner", readiness.safety_cap))}</strong> ` +
       readiness.cap_reasons.map(escapeHtml).join(" ") + `</div>`
     : "";
   renderSummary();
@@ -344,7 +324,7 @@ async function ask() {
     });
     appendAsk("agent", reply.answer);
   } catch (error) {
-    appendAsk("agent", `Error: ${error.message}`);
+    appendAsk("agent", i18n.t("error", error.message));
   } finally {
     $("ask-send").disabled = false;
     input.focus();
@@ -363,7 +343,15 @@ function download(filename, text, type) {
 
 /* ---------- wiring ---------- */
 
-document.addEventListener("DOMContentLoaded", loadSettings);
+document.addEventListener("DOMContentLoaded", () => {
+  i18n.set(i18n.detect());
+  $("lang").value = i18n.lang;
+  loadSettings();
+});
+$("lang").addEventListener("change", () => {
+  i18n.set($("lang").value);
+  if (state.result) render();
+});
 $("settings-toggle").addEventListener("click", () => {
   $("settings").hidden = !$("settings").hidden;
 });
@@ -381,14 +369,14 @@ $("pillars").addEventListener("click", (event) => {
 });
 $("copy-jsonld").addEventListener("click", (event) => {
   navigator.clipboard.writeText($("jsonld").textContent).then(() => {
-    event.target.textContent = "Copied";
-    setTimeout(() => (event.target.textContent = "Copy"), 1200);
+    event.target.textContent = i18n.t("copied");
+    setTimeout(() => (event.target.textContent = i18n.t("copy")), 1200);
   });
 });
 $("copy-json").addEventListener("click", async () => {
   if (!state.result) return;
   await navigator.clipboard.writeText(JSON.stringify(state.draft || state.result, null, 2));
-  setStatus("Full JSON result copied.");
+  setStatus(i18n.t("statusJsonCopied"));
 });
 $("download-report").addEventListener("click", async () => {
   if (!state.result) return;

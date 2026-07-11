@@ -28,6 +28,8 @@ also works on bot-protected storefronts where a plain fetch gets blocked.
 - An "ask the agent" box, answered deterministically from the audit result
   (or by a BYO model when a provider is selected in settings).
 - Downloads: self-contained HTML report, full JSON result.
+- The popup follows your browser language (English / 中文) with a selector
+  in the header; findings from the engine remain English.
 
 ## Privacy and safety
 
