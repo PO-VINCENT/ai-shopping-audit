@@ -221,4 +221,14 @@ Scoring: [docs/scoring-methodology.md](docs/scoring-methodology.md) ·
 Interoperability: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md) ·
 Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
 
+## Contact
+
+Built by **Vincent Po Li**. Questions, fix help, partnership, or feedback:
+
+- Issues / discussions: [github.com/PO-VINCENT/ai-shopping-audit](https://github.com/PO-VINCENT/ai-shopping-audit/issues)
+- Email: [vincentli802@hotmail.com](mailto:vincentli802@hotmail.com)
+- LinkedIn: [vincent-po-li](https://www.linkedin.com/in/vincent-po-li-324291122/)
+- X: [@Vincent_Po_Li](https://x.com/Vincent_Po_Li)
+- 小红书 (Xiaohongshu): `vincent726217`
+
 Licensed under [Apache-2.0](LICENSE).

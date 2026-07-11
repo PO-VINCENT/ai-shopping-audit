@@ -122,7 +122,9 @@ def deterministic_answer(result: dict[str, Any], question: str) -> str:
     return (
         "I can explain pillars (e.g. 'why is structured data low?'), list fixes "
         "('what should I fix?'), findings, merchant questions, or the score. "
-        "Select a model provider for open-ended questions."
+        "Select a model provider for open-ended questions. "
+        "More help: https://github.com/PO-VINCENT/ai-shopping-audit (issues welcome) "
+        "or email vincentli802@hotmail.com"
     )
 
 

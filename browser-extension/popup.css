@@ -116,3 +116,5 @@ pre { background: var(--panel); border: 1px solid var(--border); border-radius: 
 
 .actions { display: flex; gap: .4rem; margin-top: .6rem; }
 footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: center; }
+.help-line { margin-top: .5rem; }
+.help-line a { color: var(--accent); }

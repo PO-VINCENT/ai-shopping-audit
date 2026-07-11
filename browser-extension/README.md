@@ -31,6 +31,13 @@ also works on bot-protected storefronts where a plain fetch gets blocked.
 - The popup follows your browser language (English / 中文) with a selector
   in the header; findings from the engine remain English.
 
+## Support
+
+Questions or fix help: open an issue at
+[github.com/PO-VINCENT/ai-shopping-audit](https://github.com/PO-VINCENT/ai-shopping-audit/issues)
+or email [vincentli802@hotmail.com](mailto:vincentli802@hotmail.com).
+The popup's "ask the agent" box links here too.
+
 ## Privacy and safety
 
 - Page HTML is sent **only** to the local server URL in settings
