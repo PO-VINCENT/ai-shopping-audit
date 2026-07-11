@@ -26,7 +26,7 @@ from .visibility.prompt_packs import build_visibility_prompt_pack
 def describe_agent() -> dict[str, Any]:
     return {
         "name": "CatalogReady AI",
-        "version": "0.5.0",
+        "version": "0.6.0",
         "capabilities": [
             "run_product_readiness_agent",
             "audit_catalog",

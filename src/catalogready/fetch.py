@@ -9,7 +9,7 @@ from __future__ import annotations
 import urllib.request
 
 FETCH_LIMIT_BYTES = 2_000_000
-_USER_AGENT = "CatalogReady/0.5 product-page audit (single request)"
+_USER_AGENT = "CatalogReady/0.6 product-page audit (single request)"
 
 
 def fetch_page(url: str, timeout: int = 20) -> str:
