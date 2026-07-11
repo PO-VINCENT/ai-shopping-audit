@@ -58,7 +58,12 @@ def score_page_readiness(
     }
     structured_checks = {
         "product_node": (bool(summary.get("products")), 6),
-        "product_identity": (bool(summary.get("products")) and clean_of("GEO-PRODUCT-002"), 4),
+        "product_identity": (
+            bool(summary.get("products"))
+            and clean_of("GEO-PRODUCT-002")
+            and clean_of("GEO-PRODUCT-003"),
+            4,
+        ),
         "offer": (offer_complete_markup, 5),
         "canonical": (bool(summary.get("canonical")), 3),
         "valid_json_ld": (summary.get("invalid_json_ld", 0) == 0, 2),

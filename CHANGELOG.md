@@ -4,6 +4,22 @@
 
 ### Added
 
+- GEO-PRODUCT-003: the JSON-LD product name must appear in the visible
+  page title or text. Catches feed-artifact markup names (e.g. a real
+  marketplace page whose markup names a treadmill "Everfit 1EA") that AI
+  agents would read as the product name; also fails the structured-data
+  identity check.
+- Specifications published only as prose ("Specifications: Rated voltage:
+  240V ...") are now parsed deterministically into structured spec
+  evidence when the markup has none, feeding the decision-evidence pillar,
+  claim grounding, and the recommended JSON-LD's additionalProperty block.
+
+### Fixed
+
+- Page-topic evidence (shipping/returns/warranty/care) no longer captures
+  navigation junk: visible text is segmented at block-element boundaries
+  and topic sentences must be at least 30 characters, so unpunctuated menu
+  strings can no longer masquerade as shipping or warranty evidence.
 - The dashboard is multilingual: the UI language follows the browser
   language automatically (English and 简体中文 to start), with a header
   selector that persists the choice. All UI chrome, pillar names and

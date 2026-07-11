@@ -69,6 +69,10 @@ def _price_on_page(price: str, page_text: str) -> bool:
     return any(candidate and candidate in haystack for candidate in candidates)
 
 
+def _normalize(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
 def audit_page_quality(
     signals: PageSignals,
     products: list[dict[str, Any]],
@@ -78,6 +82,25 @@ def audit_page_quality(
     findings: list[Finding] = []
     text = signals.visible_text
     lowered = text.lower()
+
+    # GEO-PRODUCT-003 — the markup name is what agents read; it must match
+    # the visible page. Catches feed-artifact names like "Brand 1EA".
+    page_haystack = _normalize(f"{signals.title} {text}")
+    for product in products:
+        name = product.get("name")
+        if not isinstance(name, str) or len(name.strip()) < 3:
+            continue
+        if _normalize(name) not in page_haystack:
+            findings.append(
+                finding(
+                    "GEO-PRODUCT-003",
+                    "medium",
+                    "Product name in markup does not match the visible page",
+                    f"JSON-LD names the product “{name.strip()}”, which does not appear in the page title or text.",
+                    "Use the real, shopper-facing product name in structured data; agents read the markup name, not the page.",
+                )
+            )
+            break
 
     # GEO-OFFER-003 — markup price should be visible on the page.
     prices = _price_texts(offers)

@@ -66,6 +66,14 @@ def _price(value: Any, currency: Any = "") -> dict[str, str]:
     return {"amount": amount, "currency": resolved_currency}
 
 
+_BLOCK_TAGS = {
+    "address", "article", "aside", "blockquote", "br", "dd", "div", "dl", "dt",
+    "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
+    "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p", "section",
+    "table", "td", "th", "tr", "ul",
+}
+
+
 class _ProductHTMLParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -79,26 +87,34 @@ class _ProductHTMLParser(HTMLParser):
         self.canonical = ""
         self._text_parts: list[str] = []
 
+    def _block_boundary(self) -> None:
+        if self._text_parts and self._text_parts[-1] != "\n":
+            self._text_parts.append("\n")
+
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = {key.lower(): value or "" for key, value in attrs}
-        if tag.lower() == "title":
+        lowered = tag.lower()
+        if lowered == "title":
             self._in_title = True
-        elif tag.lower() == "script" and values.get("type", "").lower() == "application/ld+json":
+        elif lowered == "script" and values.get("type", "").lower() == "application/ld+json":
             self._in_jsonld = True
             self._script_parts = []
-        elif tag.lower() in {"script", "style", "noscript"}:
+        elif lowered in {"script", "style", "noscript"}:
             self._ignored_depth += 1
-        elif tag.lower() == "meta":
+        elif lowered == "meta":
             key = values.get("property") or values.get("name") or values.get("itemprop")
             if key and values.get("content"):
                 self.meta[key.lower()] = values["content"]
-        elif tag.lower() == "link" and values.get("rel", "").lower() == "canonical":
+        elif lowered == "link" and values.get("rel", "").lower() == "canonical":
             self.canonical = values.get("href", "")
+        if lowered in _BLOCK_TAGS:
+            self._block_boundary()
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == "title":
+        lowered = tag.lower()
+        if lowered == "title":
             self._in_title = False
-        elif tag.lower() == "script" and self._in_jsonld:
+        elif lowered == "script" and self._in_jsonld:
             self._in_jsonld = False
             raw = "".join(self._script_parts).strip()
             if raw:
@@ -106,8 +122,10 @@ class _ProductHTMLParser(HTMLParser):
                     self.jsonld.append(json.loads(raw))
                 except json.JSONDecodeError:
                     pass
-        elif tag.lower() in {"script", "style", "noscript"} and self._ignored_depth:
+        elif lowered in {"script", "style", "noscript"} and self._ignored_depth:
             self._ignored_depth -= 1
+        if lowered in _BLOCK_TAGS:
+            self._block_boundary()
 
     def handle_data(self, data: str) -> None:
         if self._in_title:
@@ -123,7 +141,8 @@ class _ProductHTMLParser(HTMLParser):
 
     @property
     def visible_text(self) -> str:
-        return " ".join(self._text_parts)
+        joined = " ".join(self._text_parts)
+        return re.sub(r"\s*\n\s*", "\n", joined).strip()
 
 
 _PAGE_TOPICS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -137,13 +156,19 @@ _PAGE_TOPICS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 
 def page_topic_evidence(visible_text: str) -> dict[str, str]:
-    """Extract the first supporting sentence per shopper-facing topic."""
+    """Extract the first supporting sentence per shopper-facing topic.
 
-    sentences = [
-        sentence.strip()
-        for sentence in re.split(r"(?<=[.!?])\s+", visible_text)
-        if sentence.strip()
-    ]
+    Text is segmented at block-element boundaries first, so navigation
+    menus and link lists become short segments that the length filter
+    drops instead of being glued into one giant pseudo-sentence.
+    """
+
+    sentences: list[str] = []
+    for block in visible_text.split("\n"):
+        for sentence in re.split(r"(?<=[.!?])\s+", block):
+            sentence = sentence.strip()
+            if 30 <= len(sentence):
+                sentences.append(sentence)
     topics: dict[str, str] = {}
     for topic, keywords in _PAGE_TOPICS:
         for sentence in sentences:
@@ -152,6 +177,56 @@ def page_topic_evidence(visible_text: str) -> dict[str, str]:
                 topics[topic] = sentence[:240]
                 break
     return topics
+
+
+_SPEC_KEY_STOPLIST = {
+    "http", "https", "note", "important", "warning", "tip", "example",
+    "faq", "q", "a", "step",
+}
+
+# A key is 1-4 purely alphabetic words (each 2+ chars), so measurement
+# fragments in run-on chains ("150cm x 84cm belt size: ...") cannot be
+# absorbed into the next key.
+_SPEC_KEY_PATTERN = re.compile(
+    r"\b([A-Za-z][A-Za-z()'&.-]+(?:\s+[A-Za-z][A-Za-z()'&.-]+){0,3})\s*:\s*"
+)
+
+
+def specifications_from_text(visible_text: str, limit: int = 20) -> list[dict[str, str]]:
+    """Parse a `Key: Value` specification block out of visible page text.
+
+    Many storefronts publish specifications only as prose under a
+    "Specifications" heading. This recovers them deterministically so they
+    can become evidence and additionalProperty markup — no inference, only
+    text that is literally on the page.
+    """
+
+    flattened = visible_text.replace("\n", " ")
+    anchor = re.search(r"specifications?\s*:?", flattened, flags=re.IGNORECASE)
+    if not anchor:
+        return []
+    region = flattened[anchor.end():]
+    stop = re.search(r"package content|warranty|returns policy|delivery", region, flags=re.IGNORECASE)
+    if stop and stop.start() > 0:
+        region = region[: stop.start()]
+    region = region[:1500]
+
+    matches = list(_SPEC_KEY_PATTERN.finditer(region))
+    specs: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for index, match in enumerate(matches):
+        key = " ".join(match.group(1).split()).strip("-. ")
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(region)
+        value = region[match.end():end].strip(" ;,.")
+        if not key or not value or len(value) > 80:
+            continue
+        if key.lower() in _SPEC_KEY_STOPLIST or key.lower() in seen:
+            continue
+        seen.add(key.lower())
+        specs.append({"name": key, "value": value})
+        if len(specs) >= limit:
+            break
+    return specs
 
 
 def _walk_jsonld(value: Any) -> list[dict[str, Any]]:
@@ -276,7 +351,7 @@ def evidence_from_html(url: str, html: str) -> dict[str, Any]:
             offer.get("priceCurrency") or parser.meta.get("product:price:currency"),
         ),
         "availability": _availability(offer.get("availability") or parser.meta.get("product:availability")),
-        "specifications": _specifications(node),
+        "specifications": _specifications(node) or specifications_from_text(parser.visible_text),
         "review_summary": {
             "rating": _clean(aggregate.get("ratingValue")),
             "count": _first(aggregate.get("reviewCount"), aggregate.get("ratingCount")),
@@ -439,4 +514,5 @@ __all__ = [
     "evidence_from_html",
     "evidence_from_shopify",
     "page_topic_evidence",
+    "specifications_from_text",
 ]
