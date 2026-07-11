@@ -99,6 +99,8 @@ const I18N = {
     chatNeedsAudit: "Run an audit first, then ask me about the result.",
     answeredBy: (mode) => `answered by ${mode}`,
     error: (message) => `Error: ${message}`,
+    keyHint:
+      "To use a model provider, add its key to the server's .env (e.g. OPENAI_API_KEY=… and OPENAI_MODEL=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
     pillars: {
       product_identity: "Product identity",
       offer_completeness: "Offer completeness",
@@ -236,6 +238,8 @@ const I18N = {
     chatNeedsAudit: "请先运行一次审计，再向我提问。",
     answeredBy: (mode) => `由 ${mode} 回答`,
     error: (message) => `错误：${message}`,
+    keyHint:
+      "使用模型提供方需在服务器的 .env 中配置密钥（如 OPENAI_API_KEY=… 和 OPENAI_MODEL=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
     pillars: {
       product_identity: "商品身份",
       offer_completeness: "报价完整性",

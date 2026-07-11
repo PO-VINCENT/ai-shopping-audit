@@ -4,6 +4,15 @@
 
 ### Added
 
+- Launch tooling: a tag-triggered release workflow (PyPI Trusted
+  Publishing + extension zip artifact), extension icons (16/32/48/128),
+  `scripts/package-extension.sh`, `scripts/benchmark.py` (audits a URL
+  list into a Markdown benchmark table), `docs/BYO-KEYS.md`, and
+  `docs/LAUNCH.md` — the full launch runbook with pre-written listing and
+  announcement copy.
+- Selecting a model provider without a configured key now shows a
+  localized hint (add the key to the server's `.env` and restart) in both
+  the dashboard and the extension, instead of a raw provider error.
 - The dashboard footer shows the server version and start time, refreshed
   every 30 seconds. The `/health` route now reports `version`,
   `started_at`, and `stale` — the server compares its own source mtimes

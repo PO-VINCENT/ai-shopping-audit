@@ -97,6 +97,13 @@ async function api(path, body) {
   return payload;
 }
 
+function friendlyError(message) {
+  if (/missing api key|model id is required/i.test(message)) {
+    return `${message} — ${i18n.t("keyHint")}`;
+  }
+  return message;
+}
+
 /* ---------- fetch & agent runs ---------- */
 
 async function fetchHtml() {
@@ -163,7 +170,7 @@ async function runAgent(mode) {
     setStatus("");
     if (mode === "audit") autoDraft();
   } catch (error) {
-    setStatus(error.message, true);
+    setStatus(friendlyError(error.message), true);
   } finally {
     button.disabled = false;
   }
@@ -416,7 +423,7 @@ async function sendChat() {
     });
     appendMessage("agent", reply.answer, reply.mode);
   } catch (error) {
-    appendMessage("agent", i18n.t("error", error.message));
+    appendMessage("agent", i18n.t("error", friendlyError(error.message)));
   } finally {
     el("chat-send").disabled = false;
     input.focus();

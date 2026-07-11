@@ -1,0 +1,56 @@
+name: Release
+
+# Publishes to PyPI via Trusted Publishing when a v* tag is pushed.
+# One-time setup on pypi.org: project "catalogready-ai" -> Publishing ->
+# add this repository + workflow file as a Trusted Publisher (no secrets).
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run the test suite first
+        run: |
+          pip install -e .
+          python -m unittest discover -s tests -v
+      - name: Build distributions
+        run: |
+          pip install build
+          python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  extension-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package the browser extension
+        run: |
+          cd browser-extension
+          zip -r ../catalogready-extension-${GITHUB_REF_NAME}.zip . -x README.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension
+          path: catalogready-extension-*.zip

@@ -176,6 +176,13 @@ Configuration examples are in [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.m
 | Runs offline, no account, no API key | ✓ | ✗ | ✗ | ✗ |
 | Hands you a paste-ready JSON-LD fix | ✓ | ✗ | ✗ | generated, ungrounded |
 
+## Bring your own model key (optional)
+
+Everything above runs with **no key**. To enable model-assisted planning,
+chat answers, and listing drafts, put a provider key in the server's
+`.env` — see [docs/BYO-KEYS.md](docs/BYO-KEYS.md). Keys never enter the
+dashboard, the extension, or tool arguments.
+
 ## Also in the box
 
 The audit engine is a vendor-neutral service with several thin surfaces.

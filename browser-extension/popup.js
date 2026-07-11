@@ -22,6 +22,13 @@ function setStatus(message, isError = false) {
   $("status").classList.toggle("error", isError);
 }
 
+function friendlyError(message) {
+  if (/missing api key|model id is required/i.test(message)) {
+    return `${message} — ${i18n.t("keyHint")}`;
+  }
+  return message;
+}
+
 function serverBase() {
   return $("server").value.trim().replace(/\/$/, "");
 }
@@ -113,7 +120,7 @@ async function analyze() {
     setStatus("");
     autoDraft();
   } catch (error) {
-    setStatus(error.message, true);
+    setStatus(friendlyError(error.message), true);
   } finally {
     button.disabled = false;
   }
@@ -324,7 +331,7 @@ async function ask() {
     });
     appendAsk("agent", reply.answer);
   } catch (error) {
-    appendAsk("agent", i18n.t("error", error.message));
+    appendAsk("agent", i18n.t("error", friendlyError(error.message)));
   } finally {
     $("ask-send").disabled = false;
     input.focus();

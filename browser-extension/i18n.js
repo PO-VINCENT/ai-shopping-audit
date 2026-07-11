@@ -54,6 +54,8 @@ const I18N = {
     validationLine: (before, after) =>
       `Validated preview: ${before} → ${after}. Nothing was written to your store.`,
     error: (message) => `Error: ${message}`,
+    keyHint:
+      "To use a model provider, add its key to the local server's .env (e.g. OPENAI_API_KEY=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
     pillars: {
       product_identity: "Product identity",
       offer_completeness: "Offer completeness",
@@ -136,6 +138,8 @@ const I18N = {
     reversible: "可回滚",
     validationLine: (before, after) => `隔离预览验证：${before} → ${after}。未写入店铺。`,
     error: (message) => `错误：${message}`,
+    keyHint:
+      "使用模型提供方需在本地服务器的 .env 中配置密钥（如 OPENAI_API_KEY=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
     pillars: {
       product_identity: "商品身份",
       offer_completeness: "报价完整性",
