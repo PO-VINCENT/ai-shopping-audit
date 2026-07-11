@@ -209,3 +209,4 @@ footer {
   padding: 1rem 1.4rem 2rem; color: var(--muted); font-size: .8rem;
   max-width: 1280px; margin: 0 auto;
 }
+.server-info.stale { color: var(--bad); font-weight: 600; }

@@ -34,6 +34,17 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(content.count("pillarExplain: {"), 2)
         self.assertEqual(content.count("checks: {"), 2)
 
+    def test_health_payload_reports_version_and_staleness(self) -> None:
+        from catalogready.local_server import health_payload
+
+        payload = health_payload()
+        self.assertEqual(payload["status"], "ok")
+        self.assertRegex(payload["version"], r"^\d+\.\d+\.\d+$")
+        self.assertIn("started_at", payload)
+        # Source files were written after this test process imported the
+        # module only in dev flows; the flag must at least be a boolean.
+        self.assertIsInstance(payload["stale"], bool)
+
     def test_fetch_route_rejects_non_http_schemes(self) -> None:
         for url in ("file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)", ""):
             with self.subTest(url=url), self.assertRaises(ValueError):

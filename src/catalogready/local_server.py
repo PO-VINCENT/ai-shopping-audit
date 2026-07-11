@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 import os
+import time
+from datetime import UTC, datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -20,9 +22,30 @@ from .model_providers import ProviderError, provider_status
 from .service import dispatch
 from .env import load_local_env
 from .fetch import fetch_page
+from .service import describe_agent
 
 
 MAX_BODY_BYTES = 8 * 1024 * 1024
+
+_STARTED_AT = time.time()
+
+
+def health_payload() -> dict[str, Any]:
+    """Health plus staleness: has the source changed since this process started?"""
+
+    package_dir = Path(__file__).parent
+    newest_source = max(
+        (path.stat().st_mtime for path in package_dir.rglob("*.py")),
+        default=_STARTED_AT,
+    )
+    started = datetime.fromtimestamp(_STARTED_AT, tz=UTC).replace(microsecond=0)
+    return {
+        "status": "ok",
+        "service": "catalogready-local",
+        "version": describe_agent()["version"],
+        "started_at": started.isoformat(),
+        "stale": newest_source > _STARTED_AT,
+    }
 
 
 def fetch_url_payload(url: str) -> dict[str, Any]:
@@ -119,7 +142,7 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
             filename, content_type = _STATIC_FILES[path]
             self._send_static(filename, content_type)
         elif path == "/health":
-            self._send_json(HTTPStatus.OK, {"status": "ok", "service": "catalogready-local"})
+            self._send_json(HTTPStatus.OK, health_payload())
         elif path == "/v1/providers":
             self._send_json(HTTPStatus.OK, {"providers": provider_status()})
         else:

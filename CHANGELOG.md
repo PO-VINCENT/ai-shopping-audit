@@ -4,6 +4,12 @@
 
 ### Added
 
+- The dashboard footer shows the server version and start time, refreshed
+  every 30 seconds. The `/health` route now reports `version`,
+  `started_at`, and `stale` — the server compares its own source mtimes
+  against its start time, so running old code after a `git pull` shows a
+  red "restart" warning (localized) instead of silently serving outdated
+  audit results.
 - The browser-extension popup is multilingual like the dashboard: default
   follows the browser language (English / 简体中文), a header selector
   overrides and persists it, and switching re-renders the current result.

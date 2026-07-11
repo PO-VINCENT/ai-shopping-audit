@@ -56,6 +56,10 @@ const I18N = {
     downloadJson: "Download JSON",
     footerLeft: "CatalogReady · evidence-grounded product audits",
     footerRight: "A readiness score is never a ranking or citation guarantee.",
+    serverInfo: (version, started) => `Server v${version} · started ${started}`,
+    serverStale: (version, started) =>
+      `Server v${version} (started ${started}) is running OLD code — restart: uv run catalogready dashboard`,
+    serverUnreachable: "Local server unreachable — start it with: uv run catalogready dashboard",
     // dynamic strings
     statusNeedUrl: "Provide a product URL (or load a demo).",
     statusEnterUrl: "Enter a product URL to fetch.",
@@ -194,6 +198,10 @@ const I18N = {
     downloadJson: "下载 JSON",
     footerLeft: "CatalogReady · 有据可依的商品审计",
     footerRight: "就绪评分不构成任何排名或引用保证。",
+    serverInfo: (version, started) => `服务器 v${version} · 启动于 ${started}`,
+    serverStale: (version, started) =>
+      `服务器 v${version}（启动于 ${started}）运行的是旧代码——请重启：uv run catalogready dashboard`,
+    serverUnreachable: "本地服务器不可达——请启动：uv run catalogready dashboard",
     statusNeedUrl: "请输入商品网址（或加载示例）。",
     statusEnterUrl: "请先输入要抓取的商品网址。",
     statusFetching: "正在抓取页面（经本地服务器发起一次请求）…",

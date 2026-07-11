@@ -433,14 +433,38 @@ function download(filename, text, type) {
   URL.revokeObjectURL(link.href);
 }
 
+/* ---------- server health ---------- */
+
+async function loadHealth() {
+  const info = el("server-info");
+  try {
+    const response = await fetch("/health");
+    const health = await response.json();
+    const started = new Date(health.started_at).toLocaleTimeString();
+    if (health.stale) {
+      info.textContent = i18n.t("serverStale", health.version, started);
+      info.classList.add("stale");
+    } else {
+      info.textContent = i18n.t("serverInfo", health.version, started);
+      info.classList.remove("stale");
+    }
+  } catch (error) {
+    info.textContent = i18n.t("serverUnreachable");
+    info.classList.add("stale");
+  }
+}
+
 /* ---------- wiring ---------- */
 
 i18n.set(i18n.detect());
 el("lang").value = i18n.lang;
+loadHealth();
+setInterval(loadHealth, 30000);
 
 el("lang").addEventListener("change", () => {
   i18n.set(el("lang").value);
   if (state.result) render(state.result);
+  loadHealth();
 });
 
 el("pillars").addEventListener("click", (event) => {
