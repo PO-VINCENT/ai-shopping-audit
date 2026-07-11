@@ -154,17 +154,21 @@ explanations, inline merchant questions, a paste-ready JSON-LD patch, an
 your browser language (English / 中文, switchable in the header). Everything
 runs locally; the page never asks for API keys.
 
-## Use it from an AI agent (MCP)
+## Use it with ChatGPT, Claude, Gemini, Copilot, or DeepSeek
 
-CatalogReady ships an MCP server, so the agents you already use can audit
-pages as a tool:
+CatalogReady ships an MCP server, so the AI assistant you already use can
+audit pages as a tool:
 
 ```bash
-claude mcp add catalogready -- uvx --from catalogready-ai catalogready-mcp
+claude mcp add catalogready -- uv run catalogready-mcp
 ```
 
-Works with Claude Code, Codex, Gemini CLI, Cursor, and any MCP client.
-Configuration examples are in [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md).
+**[docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md)**
+has copy-paste setups for **ChatGPT/Codex**, **Claude** (Code + Desktop),
+**Gemini** (CLI + Enterprise A2A), **Copilot** (VS Code agent mode), and
+**DeepSeek** — covering both directions: the assistant calling
+CatalogReady as a tool, and each vendor as the optional BYO model inside
+CatalogReady. Protocol details: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md).
 
 ## How it compares
 

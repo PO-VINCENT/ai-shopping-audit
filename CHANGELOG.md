@@ -4,6 +4,10 @@
 
 ### Added
 
+- `docs/QUICKSTART-AI-ASSISTANTS.md`: copy-paste setups for ChatGPT/Codex,
+  Claude (Code + Desktop), Gemini (CLI + Enterprise A2A), Copilot (VS Code
+  agent mode), and DeepSeek — both as MCP clients calling CatalogReady and
+  as BYO models inside it. Linked from the README.
 - Launch tooling: a tag-triggered release workflow (PyPI Trusted
   Publishing + extension zip artifact), extension icons (16/32/48/128),
   `scripts/package-extension.sh`, `scripts/benchmark.py` (audits a URL
