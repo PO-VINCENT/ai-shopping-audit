@@ -160,7 +160,7 @@ CatalogReady ships an MCP server, so the AI assistant you already use can
 audit pages as a tool:
 
 ```bash
-claude mcp add catalogready -- uv run catalogready-mcp
+claude mcp add catalogready -- uvx --from catalogready-ai catalogready-mcp
 ```
 
 **[docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md)**

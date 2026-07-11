@@ -11,10 +11,10 @@ CatalogReady meets each AI assistant in two ways:
 
 The audit itself needs **no key and no account** either way.
 
-Command note: once the package is on PyPI, `uvx --from catalogready-ai
-catalogready-mcp` works from anywhere with no checkout. From a git clone,
-use `uv run catalogready-mcp` with the repo as working directory — the
-snippets below show the clone form; swap in the `uvx` form after release.
+Command note: the package is on PyPI, so the snippets below work from
+anywhere with `uv` installed — no checkout needed. From a git clone you
+can instead use `command: "uv", args: ["run", "catalogready-mcp"]` with
+the repo as working directory.
 
 ---
 
@@ -26,8 +26,8 @@ trusted project's `.codex/config.toml`; this repo ships the same block in
 
 ```toml
 [mcp_servers.catalogready]
-command = "uv"
-args = ["run", "catalogready-mcp"]
+command = "uvx"
+args = ["--from", "catalogready-ai", "catalogready-mcp"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 ```
@@ -57,7 +57,7 @@ on the CLI, `/provider openai` in `catalogready chat`.
 **As a tool — Claude Code (one line):**
 
 ```bash
-claude mcp add catalogready -- uv run catalogready-mcp
+claude mcp add catalogready -- uvx --from catalogready-ai catalogready-mcp
 ```
 
 (Working inside this repo, the checked-in `.mcp.json` registers the
@@ -69,9 +69,8 @@ server automatically — Claude Code will prompt to trust it.)
 {
   "mcpServers": {
     "catalogready": {
-      "command": "uv",
-      "args": ["run", "catalogready-mcp"],
-      "cwd": "/path/to/ai-shopping-audit"
+      "command": "uvx",
+      "args": ["--from", "catalogready-ai", "catalogready-mcp"]
     }
   }
 }
@@ -95,9 +94,8 @@ your own projects add:
 {
   "mcpServers": {
     "catalogready": {
-      "command": "uv",
-      "args": ["run", "catalogready-mcp"],
-      "cwd": "/path/to/ai-shopping-audit",
+      "command": "uvx",
+      "args": ["--from", "catalogready-ai", "catalogready-mcp"],
       "trust": false
     }
   }
@@ -124,9 +122,8 @@ your workspace:
   "servers": {
     "catalogready": {
       "type": "stdio",
-      "command": "uv",
-      "args": ["run", "catalogready-mcp"],
-      "cwd": "/path/to/ai-shopping-audit"
+      "command": "uvx",
+      "args": ["--from", "catalogready-ai", "catalogready-mcp"]
     }
   }
 }
