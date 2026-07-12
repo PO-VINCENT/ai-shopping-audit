@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Changed
+
+- **Score recalibration: findings now deduct.** Real-world pages were
+  scoring 85–95 "ready" because ~30 newer rules produced findings that
+  cost nothing. Every page/claim finding now deducts by severity
+  (high −6, medium −3, low −1) on top of the presence checks, before the
+  caps; `raw_score` and `deductions` are reported for transparency and
+  shown in the CLI card, dashboard/popup summaries, and HTML report.
+  GEO-PRODUCT-003 (markup name does not match the page) is now high
+  severity — the markup name is the agent's matching key. Reference
+  points: the live Woolworths page drops 87 "ready" → 76 "needs_work";
+  the bad demo drops 16 → 0; clean pages (good demo 97) are unaffected.
+
 ### Added
 
 - `docs/METRICS.md`: the rules categorized into eight measurement

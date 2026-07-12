@@ -234,6 +234,9 @@ function renderSummary() {
   if ((readiness.cap_reasons || []).length) {
     points.push(escapeHtml(i18n.t("summaryCapped", readiness.safety_cap, readiness.cap_reasons.join(" "))));
   }
+  if (readiness.deductions) {
+    points.push(escapeHtml(i18n.t("summaryDeductions", readiness.deductions)));
+  }
   if (high) points.push(escapeHtml(i18n.t("summaryCritical", high)));
   if (blocking) points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
   const validation = (state.draft || {}).validation || {};

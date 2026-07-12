@@ -259,9 +259,9 @@ bounded agent — audit, ask, answer, fix:
 ```text
 catalogready> /audit https://your-store.com/products/example
 ● inspect_product_page — Extracted 3 evidence items ...
-● audit_product — Measured readiness at 16/100 and produced 13 findings.
+● audit_product — Measured readiness at 1/100 and produced 14 findings.
 
-  CatalogReady Score: 16/100 (needs_work)
+  CatalogReady Score: 1/100 (needs_work)
   ...
   [blocking] price: What is the current verified product price?
 
@@ -273,7 +273,7 @@ Offer completeness: 0/20
 
 catalogready> /answers sku=CR-100 price=49.00 currency=AUD availability=in_stock
 catalogready> /draft
-Isolated preview validation: 16 → 60 (+44), status validated.
+Isolated preview validation: 1 → 39 (+38), status validated.
 
 catalogready> /report
 ```

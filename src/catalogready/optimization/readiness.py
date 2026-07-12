@@ -13,6 +13,12 @@ from typing import Any
 
 _CLAIM_DEDUCTIONS = {"high": 5, "medium": 3, "low": 1}
 
+# Every page/claim finding also deducts by severity, on top of the
+# presence checks. Checks measure what exists; findings measure documented
+# platform defects — a page dense with defects must not score like a clean
+# one just because its basic fields are present.
+_FINDING_DEDUCTIONS = {"high": 6, "medium": 3, "low": 1}
+
 PILLARS = (
     "product_identity",
     "offer_completeness",
@@ -144,10 +150,17 @@ def score_page_readiness(
         cap = min(cap, 74)
         cap_reasons.append("No Product structured data was found on the page.")
 
-    score = min(raw_score, cap)
+    deductions = sum(
+        _FINDING_DEDUCTIONS.get(str(item.get("severity")), 1)
+        for item in [*page_findings, *claim_findings]
+    )
+    # Floor at 1: the score is always positive; 1 reads as "essentially
+    # nothing is agent-usable" without looking like a rendering bug.
+    score = max(1, min(raw_score - deductions, cap))
     return {
         "score": score,
         "raw_score": raw_score,
+        "deductions": deductions,
         "status": "ready" if score >= 80 and cap == 100 else "needs_work",
         "components": components,
         "safety_cap": cap,

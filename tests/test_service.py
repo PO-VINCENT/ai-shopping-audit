@@ -22,7 +22,7 @@ class CatalogReadyServiceTests(unittest.TestCase):
         self.assertEqual(breakdown["base_completeness"], 75)
         self.assertEqual(
             result["scores"]["catalog_readiness"]["score"],
-            max(0, 75 - breakdown["severity_deductions"]),
+            max(1, 75 - breakdown["severity_deductions"]),
         )
         self.assertLess(result["scores"]["catalog_readiness"]["score"], 75)
         self.assertGreaterEqual(result["summary"]["findings"], 2)

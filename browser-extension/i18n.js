@@ -41,6 +41,7 @@ const I18N = {
     verdictPartial: "Partially readable by AI shopping agents.",
     verdictPoor: "Largely invisible or untrustworthy to AI shopping agents.",
     summaryCapped: (cap, reasons) => `Capped at ${cap}: ${reasons}`,
+    summaryDeductions: (n) => `Findings deduct ${n} points.`,
     summaryCritical: (n) => `${n} critical finding${n > 1 ? "s" : ""}.`,
     summaryBlocking: (n) => `${n} blocking merchant question${n > 1 ? "s" : ""}.`,
     summaryAutofix: (n, before, after) =>
@@ -138,6 +139,7 @@ const I18N = {
     verdictPartial: "对 AI 购物助手只部分可读。",
     verdictPoor: "对 AI 购物助手基本不可见或不可信。",
     summaryCapped: (cap, reasons) => `封顶为 ${cap}：${reasons}`,
+    summaryDeductions: (n) => `问题项扣除 ${n} 分。`,
     summaryCritical: (n) => `${n} 个严重问题。`,
     summaryBlocking: (n) => `${n} 个必答商家问题。`,
     summaryAutofix: (n, before, after) => `已自动生成 ${n} 项修复：验证 ${before} → ${after}。`,

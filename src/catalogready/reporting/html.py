@@ -326,6 +326,7 @@ def _agent_report(result: dict[str, Any]) -> str:
     {_dial(score)}
     <div class="pillars">{_pillar_rows(components)}</div>
   </div>
+  {'<p class="sub">Findings deduct ' + str(readiness.get("deductions")) + ' points from the ' + str(readiness.get("raw_score")) + '-point check total.</p>' if readiness.get("deductions") else ''}
   {cap_html}
   <div class="actions">
     <button onclick="downloadCard()">Download score card (PNG)</button>

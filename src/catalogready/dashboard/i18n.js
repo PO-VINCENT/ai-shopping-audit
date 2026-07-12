@@ -17,7 +17,7 @@ const I18N = {
     htmlPlaceholder:
       "Left empty? Audit fetches the page for you (one request via the local server). Or paste the rendered HTML to stay fully offline.",
     demoGood: "Load good demo (97/100)",
-    demoBad: "Load bad demo (16/100)",
+    demoBad: "Load bad demo (1/100)",
     providerSummary: "Model provider (optional)",
     providerLabel: "Provider",
     providerOffline: "Offline / deterministic",
@@ -79,6 +79,7 @@ const I18N = {
     verdictPoor:
       "This page is largely invisible or untrustworthy to AI shopping agents in its current state.",
     summaryCapped: (cap, reasons) => `The score is hard-capped at ${cap}: ${reasons}`,
+    summaryDeductions: (n, raw) => `Findings deduct ${n} points from the ${raw}-point check total.`,
     summaryFindings: (high, medium) =>
       `${high} critical and ${medium} recommended findings need attention — see the Findings tab.`,
     summaryBlocking: (n) =>
@@ -179,7 +180,7 @@ const I18N = {
     htmlPlaceholder:
       "留空则审计时自动抓取页面（经本地服务器发起一次请求）；也可粘贴渲染后的 HTML，完全离线运行。",
     demoGood: "加载优秀示例（97/100）",
-    demoBad: "加载问题示例（16/100）",
+    demoBad: "加载问题示例（1/100）",
     providerSummary: "模型提供方（可选）",
     providerLabel: "提供方",
     providerOffline: "离线 / 确定性",
@@ -235,6 +236,7 @@ const I18N = {
     verdictPartial: "该页面对 AI 购物助手只部分可读；下列缺口会降低其可信引用程度。",
     verdictPoor: "当前状态下，该页面对 AI 购物助手基本不可见或不可信。",
     summaryCapped: (cap, reasons) => `评分被硬性封顶为 ${cap}：${reasons}`,
+    summaryDeductions: (n, raw) => `问题项从 ${raw} 分检查总分中扣除 ${n} 分。`,
     summaryFindings: (high, medium) =>
       `${high} 个严重问题和 ${medium} 个建议修复项需要处理——见「问题清单」。`,
     summaryBlocking: (n) => `${n} 项关键信息只有商家能提供——见「商家问题」。`,

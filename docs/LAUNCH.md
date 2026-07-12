@@ -38,7 +38,7 @@ copy pre-written. Work top to bottom.
 ## Phase 3 — demo assets (you; ~1 hr)
 
 - GIF (10–15 s) for the README top: dashboard → load bad demo → Audit →
-  16/100 with cap banner → Fixes tab → validated 16 → 60. Record with Kap
+  1/100 with cap banner → Fixes tab → validated fixes raise it. Record with Kap
   or QuickTime + gifski, ≤ 5 MB.
 - Screenshots for the extension listing (1280×800): popup on a real
   product page, one English, one Chinese.

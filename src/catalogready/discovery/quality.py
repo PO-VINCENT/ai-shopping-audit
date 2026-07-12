@@ -94,7 +94,7 @@ def audit_page_quality(
             findings.append(
                 finding(
                     "GEO-PRODUCT-003",
-                    "medium",
+                    "high",
                     "Product name in markup does not match the visible page",
                     f"JSON-LD names the product “{name.strip()}”, which does not appear in the page title or text.",
                     "Use the real, shopper-facing product name in structured data; agents read the markup name, not the page.",

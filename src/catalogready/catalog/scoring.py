@@ -121,7 +121,7 @@ def _score_catalog(
             cap = capped[0]
         if capped:
             cap_reasons.append(capped[1])
-    score = max(0, min(base - deductions, cap))
+    score = max(1, min(base - deductions, cap))
     return score, {
         "base_completeness": base,
         "severity_deductions": deductions,

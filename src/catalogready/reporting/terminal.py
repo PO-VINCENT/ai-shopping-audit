@@ -67,6 +67,14 @@ def render_score_card(
             use_color,
         )
         lines.append(f"  {label:<20} {value}")
+    if readiness.get("deductions"):
+        lines.append(
+            "  " + _paint(
+                f"  −{readiness['deductions']} finding deductions (checks: {readiness.get('raw_score')})",
+                _DIM,
+                use_color,
+            )
+        )
     for reason in readiness.get("cap_reasons") or []:
         lines.append(
             "  " + _paint(f"! Score capped at {readiness.get('safety_cap')}: {reason}", _RED, use_color)

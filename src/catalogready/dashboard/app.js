@@ -408,6 +408,9 @@ function renderSummary() {
   if ((readiness.cap_reasons || []).length) {
     points.push(escapeHtml(i18n.t("summaryCapped", readiness.safety_cap, readiness.cap_reasons.join(" "))));
   }
+  if (readiness.deductions) {
+    points.push(escapeHtml(i18n.t("summaryDeductions", readiness.deductions, readiness.raw_score)));
+  }
   if (high || medium) {
     points.push(escapeHtml(i18n.t("summaryFindings", high, medium)));
   }
