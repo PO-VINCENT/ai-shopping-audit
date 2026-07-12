@@ -17,7 +17,20 @@ _CLAIM_DEDUCTIONS = {"high": 5, "medium": 3, "low": 1}
 # presence checks. Checks measure what exists; findings measure documented
 # platform defects — a page dense with defects must not score like a clean
 # one just because its basic fields are present.
+# GEO-* rules (machine-readable product data) carry higher weight: they are
+# the core of AI-shopping readiness, while SEO-* (transport) and CLAIM-*
+# (which additionally cap the score) stay at the base weights.
 _FINDING_DEDUCTIONS = {"high": 6, "medium": 3, "low": 1}
+_GEO_DEDUCTIONS = {"high": 9, "medium": 5, "low": 2}
+
+
+def _deduction(item: dict[str, Any]) -> int:
+    table = (
+        _GEO_DEDUCTIONS
+        if str(item.get("rule_id", "")).startswith("GEO-")
+        else _FINDING_DEDUCTIONS
+    )
+    return table.get(str(item.get("severity")), 1)
 
 PILLARS = (
     "product_identity",
@@ -150,10 +163,7 @@ def score_page_readiness(
         cap = min(cap, 74)
         cap_reasons.append("No Product structured data was found on the page.")
 
-    deductions = sum(
-        _FINDING_DEDUCTIONS.get(str(item.get("severity")), 1)
-        for item in [*page_findings, *claim_findings]
-    )
+    deductions = sum(_deduction(item) for item in [*page_findings, *claim_findings])
     # Floor at 1: the score is always positive; 1 reads as "essentially
     # nothing is agent-usable" without looking like a rendering bug.
     score = max(1, min(raw_score - deductions, cap))

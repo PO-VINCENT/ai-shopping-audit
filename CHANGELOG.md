@@ -4,6 +4,10 @@
 
 ### Changed
 
+- **GEO rules weigh more in the final score.** Findings from the GEO-*
+  family (machine-readable product data) deduct at −9/−5/−2 for
+  high/medium/low versus −6/−3/−1 for other families; the live
+  Woolworths reference drops further to 69 "needs_work" (raw 87 − 18).
 - **Score recalibration: findings now deduct.** Real-world pages were
   scoring 85–95 "ready" because ~30 newer rules produced findings that
   cost nothing. Every page/claim finding now deducts by severity

@@ -33,5 +33,19 @@ class MetricMappingTests(unittest.TestCase):
             self.assertIn(item.get("metric"), METRICS, item["rule_id"])
 
 
+class GeoWeightTests(unittest.TestCase):
+    def test_geo_findings_deduct_more_than_base_families(self) -> None:
+        from catalogready.catalog.schemas import finding
+        from catalogready.optimization.readiness import _deduction
+
+        geo = finding("GEO-RETURNS-001", "medium", "t", "e", "r")
+        seo = finding("SEO-DESC-001", "low", "t", "e", "r")
+        claim = finding("CLAIM-SUPERLATIVE-001", "medium", "t", "e", "r")
+        self.assertEqual(_deduction(geo), 5)
+        self.assertEqual(_deduction(seo), 1)
+        self.assertEqual(_deduction(claim), 3)
+        self.assertEqual(_deduction(finding("GEO-GTIN-001", "high", "t", "e", "r")), 9)
+
+
 if __name__ == "__main__":
     unittest.main()

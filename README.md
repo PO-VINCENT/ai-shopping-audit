@@ -273,7 +273,7 @@ Offer completeness: 0/20
 
 catalogready> /answers sku=CR-100 price=49.00 currency=AUD availability=in_stock
 catalogready> /draft
-Isolated preview validation: 1 → 39 (+38), status validated.
+Isolated preview validation: 1 → 29 (+28), status validated.
 
 catalogready> /report
 ```

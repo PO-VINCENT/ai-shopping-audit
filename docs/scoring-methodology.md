@@ -27,7 +27,15 @@ audit. Six pillars, 100 points total:
 | Claim grounding | 10 | risky listing claims (superlatives, proof, warranty, performance) checked against evidence; deductions per finding |
 
 On top of the pillar checks, **every page and claim finding deducts by
-severity** — high −6, medium −3, low −1 (floored at 1: the score is always positive). Checks measure what
+severity**, floored at 1 (the score is always positive). GEO-* rules —
+machine-readable product data, the core of AI-shopping readiness — carry
+higher weight than the transport (SEO-*) and claim (CLAIM-*) families,
+which have their own caps and pillar wiring:
+
+| Family | high | medium | low |
+|---|---|---|---|
+| GEO-* | −9 | −5 | −2 |
+| all others | −6 | −3 | −1 | Checks measure what
 exists; findings measure documented platform defects, and a page dense
 with defects must not score like a clean one just because its basic
 fields are present. The result reports `raw_score` (checks only) and
