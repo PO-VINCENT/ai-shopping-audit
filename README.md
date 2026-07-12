@@ -354,6 +354,7 @@ with `python -m unittest discover -s tests -v`; it must pass offline.
 
 Architecture and module design: [docs/repository-design.md](docs/repository-design.md) ·
 Rules with sources: [docs/RULES.md](docs/RULES.md) ·
+Metrics & landscape: [docs/METRICS.md](docs/METRICS.md) ·
 Scoring: [docs/scoring-methodology.md](docs/scoring-methodology.md) ·
 Interoperability: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md) ·
 Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
