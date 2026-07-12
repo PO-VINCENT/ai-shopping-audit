@@ -132,5 +132,13 @@ footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: 
 .compare-scores { display: flex; gap: 1rem; font-size: .78rem; margin-bottom: .3rem; }
 .compare-list { margin: .2rem 0 .4rem; padding-left: 1rem; font-size: .72rem; }
 .compare-list li { margin: .15rem 0; list-style: none; }
-.compare-row { margin-top: .5rem; }
-.compare-row .secondary { width: 100%; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.view-toggle {
+  display: flex; margin-top: .55rem; border: 1px solid var(--border);
+  border-radius: 9px; overflow: hidden;
+}
+.view-btn {
+  flex: 1; border: 0; background: var(--panel); color: var(--muted);
+  padding: .45rem .3rem; font-size: .76rem; cursor: pointer;
+}
+.view-btn.is-active { background: var(--accent); color: #fff; font-weight: 600; }
+#view-note { margin-top: .35rem; }

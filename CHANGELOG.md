@@ -4,6 +4,12 @@
 
 ### Added
 
+- Extension (v0.6.5): the crawler comparison is now a **view-mode
+  switcher** directly under the score — "Rendered · N | Crawler · M"
+  tabs swap the entire popup (dial, pillars, summary, findings) between
+  the two views, with the JavaScript-dependence gap explained in one
+  line. The crawler audit runs lazily on first switch and is cached per
+  page; bot-walled fetches disable the mode with an explanation.
 - Extension (v0.6.3): **Compare crawler view** — audits the same URL's
   static HTML via the local server and diffs it against the rendered
   page: both scores side by side, the JavaScript-dependence gap, and the

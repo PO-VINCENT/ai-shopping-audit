@@ -5,7 +5,7 @@
    requested or stored; settings hold server URL, provider name, model ID. */
 
 const $ = (id) => document.getElementById(id);
-const state = { page: null, result: null, draft: null, answers: {} };
+const state = { page: null, result: null, draft: null, answers: {}, staticResult: null, staticBlocked: false, view: "rendered" };
 
 function escapeHtml(value) {
   const div = document.createElement("div");
@@ -27,6 +27,10 @@ function friendlyError(message) {
     return `${message} — ${i18n.t("keyHint")}`;
   }
   return message;
+}
+
+function activeResult() {
+  return state.view === "crawler" && state.staticResult ? state.staticResult : state.result;
 }
 
 function serverBase() {
@@ -116,8 +120,10 @@ async function analyze() {
     setStatus(i18n.t("statusAuditing"));
     state.result = await runAgent("audit");
     state.draft = null;
+    state.staticResult = null;
+    state.staticBlocked = false;
+    state.view = "rendered";
     render();
-    $("compare").innerHTML = "";
     setStatus("");
     autoDraft();
     autoOnlineChecks();
@@ -139,8 +145,10 @@ async function resume() {
   try {
     state.result = await runAgent("audit");
     state.draft = null;
+    state.staticResult = null;
+    state.staticBlocked = false;
+    state.view = "rendered";
     render();
-    $("compare").innerHTML = "";
     setStatus("");
     autoDraft();
     autoOnlineChecks();
@@ -219,11 +227,12 @@ function renderPillars(components) {
 }
 
 function renderSummary() {
-  const readiness = (state.result.readiness || {}).before || {};
+  const active = activeResult();
+  const readiness = (active.readiness || {}).before || {};
   const score = readiness.score || 0;
-  const findings = state.result.findings || [];
+  const findings = active.findings || [];
   const high = findings.filter((f) => f.severity === "high").length;
-  const blocking = (state.result.merchant_questions || []).filter((q) => q.blocking).length;
+  const blocking = (active.merchant_questions || []).filter((q) => q.blocking).length;
   let verdict;
   if (score >= 80 && !(readiness.cap_reasons || []).length) {
     verdict = i18n.t("verdictReady");
@@ -242,7 +251,7 @@ function renderSummary() {
   if (high) points.push(escapeHtml(i18n.t("summaryCritical", high)));
   if (blocking) points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
   const validation = (state.draft || {}).validation || {};
-  if ((state.draft?.proposed_changes || []).length && validation.after_score != null) {
+  if (state.view === "rendered" && (state.draft?.proposed_changes || []).length && validation.after_score != null) {
     points.push(
       `<span class="autofix">` +
       escapeHtml(
@@ -287,7 +296,7 @@ function renderMetricStrip(findings) {
 }
 
 function renderFindings() {
-  const findings = state.result.findings || [];
+  const findings = activeResult().findings || [];
   const order = { high: 0, medium: 1, low: 2 };
   const sorted = [...findings].sort((a, b) => (order[a.severity] ?? 3) - (order[b.severity] ?? 3));
   $("findings").innerHTML = sorted.length
@@ -307,7 +316,7 @@ function renderFindings() {
 }
 
 function renderQuestions() {
-  const questions = state.result.merchant_questions || [];
+  const questions = activeResult().merchant_questions || [];
   $("questions").innerHTML = questions
     .map(
       (item) =>
@@ -325,7 +334,7 @@ function renderQuestions() {
 }
 
 function renderFixes() {
-  const source = state.draft || state.result;
+  const source = state.view === "crawler" ? activeResult() : (state.draft || state.result);
   const changes = source.proposed_changes || [];
   $("changes").innerHTML = changes.length
     ? changes
@@ -345,8 +354,9 @@ function renderFixes() {
 
 function render() {
   $("result").hidden = false;
-  const readiness = (state.result.readiness || {}).before || {};
-  const product = (state.result.evidence_record || {}).product || {};
+  const active = activeResult();
+  const readiness = (active.readiness || {}).before || {};
+  const product = (active.evidence_record || {}).product || {};
   $("product-title").textContent = product.title || state.page.url;
   renderDial(readiness.score || 0);
   renderPillars(readiness.components || {});
@@ -358,6 +368,7 @@ function render() {
   renderFindings();
   renderQuestions();
   renderFixes();
+  updateViewToggle();
   $("ask-log").replaceChildren();
 }
 
@@ -379,7 +390,7 @@ async function ask() {
   $("ask-send").disabled = true;
   try {
     const reply = await api("/v1/agent/ask", {
-      audit_result: state.draft || state.result,
+      audit_result: state.view === "crawler" ? activeResult() : (state.draft || state.result),
       question,
       provider: $("provider").value,
       model: $("model").value.trim(),
@@ -393,58 +404,58 @@ async function ask() {
   }
 }
 
-/* ---------- compare views ---------- */
+/* ---------- view modes (rendered vs crawler) ---------- */
 
 const BOT_WALL = /pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i;
 
-async function compareViews() {
-  if (!state.result) return;
-  const button = $("compare-btn");
-  button.disabled = true;
+function updateViewToggle() {
+  const renderedScore = state.result?.readiness?.before?.score;
+  const staticScore = state.staticResult?.readiness?.before?.score;
+  const buttons = document.querySelectorAll(".view-btn");
+  buttons.forEach((button) => {
+    const isRendered = button.dataset.view === "rendered";
+    const label = i18n.t(isRendered ? "compareRendered" : "compareCrawler");
+    const score = isRendered ? renderedScore : staticScore;
+    button.textContent = score != null ? `${label} · ${score}` : label;
+    button.classList.toggle("is-active", state.view === button.dataset.view);
+  });
+  const note = $("view-note");
+  if (state.staticBlocked) {
+    note.textContent = i18n.t("compareBotWall");
+  } else if (staticScore != null && renderedScore != null) {
+    const gap = Math.abs(renderedScore - staticScore);
+    note.textContent = gap ? i18n.t("compareGap", gap) : i18n.t("compareSame");
+  } else {
+    note.textContent = "";
+  }
+}
+
+async function activateCrawlerView() {
+  if (state.staticBlocked) return;
+  if (state.staticResult) {
+    state.view = "crawler";
+    render();
+    return;
+  }
   setStatus(i18n.t("statusComparing"));
-  const box = $("compare");
   try {
     const fetched = await api("/v1/fetch", { url: state.page.url });
     if (BOT_WALL.test(fetched.html)) {
-      box.innerHTML = `<div class="cap">${escapeHtml(i18n.t("compareBotWall"))}</div>`;
+      state.staticBlocked = true;
+      updateViewToggle();
       setStatus("");
       return;
     }
-    const staticResult = await api("/v1/agent/html", {
+    state.staticResult = await api("/v1/agent/html", {
       url: state.page.url,
       html: fetched.html,
       mode: "audit",
     });
-    const renderedScore = state.result.readiness.before.score;
-    const staticScore = staticResult.readiness.before.score;
-    const renderedRules = new Set((state.result.findings || []).map((f) => f.rule_id));
-    const staticRules = new Set((staticResult.findings || []).map((f) => f.rule_id));
-    const onlyStatic = (staticResult.findings || []).filter((f) => !renderedRules.has(f.rule_id));
-    const onlyRendered = (state.result.findings || []).filter((f) => !staticRules.has(f.rule_id));
-
-    const rows = (label, items) =>
-      items.length
-        ? `<p class="note">${escapeHtml(label)}</p><ul class="compare-list">` +
-          items.slice(0, 6).map((f) =>
-            `<li><span class="chip">${escapeHtml(f.rule_id)}</span> ${escapeHtml(f.title)}</li>`
-          ).join("") + "</ul>"
-        : "";
-    const gap = Math.abs(renderedScore - staticScore);
-    box.innerHTML =
-      `<div class="compare-box"><h3>${escapeHtml(i18n.t("compareTitle"))}</h3>` +
-      `<div class="compare-scores">` +
-      `<span>${escapeHtml(i18n.t("compareRendered"))}: <strong>${renderedScore}</strong></span>` +
-      `<span>${escapeHtml(i18n.t("compareCrawler"))}: <strong>${staticScore}</strong></span></div>` +
-      `<p class="note">${escapeHtml(gap ? i18n.t("compareGap", gap) : i18n.t("compareSame"))}</p>` +
-      rows(i18n.t("compareOnlyStatic"), onlyStatic) +
-      rows(i18n.t("compareOnlyRendered"), onlyRendered) +
-      `</div>`;
+    state.view = "crawler";
+    render();
     setStatus("");
   } catch (error) {
-    box.innerHTML = `<p class="note">${escapeHtml(i18n.t("compareError", error.message))}</p>`;
-    setStatus("");
-  } finally {
-    button.disabled = false;
+    setStatus(i18n.t("compareError", error.message), true);
   }
 }
 
@@ -490,7 +501,16 @@ $("copy-jsonld").addEventListener("click", (event) => {
     setTimeout(() => (event.target.textContent = i18n.t("copy")), 1200);
   });
 });
-$("compare-btn").addEventListener("click", compareViews);
+document.querySelectorAll(".view-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (button.dataset.view === "crawler") {
+      activateCrawlerView();
+    } else {
+      state.view = "rendered";
+      render();
+    }
+  });
+});
 $("copy-json").addEventListener("click", async () => {
   if (!state.result) return;
   await navigator.clipboard.writeText(JSON.stringify(state.draft || state.result, null, 2));

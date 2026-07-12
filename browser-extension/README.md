@@ -27,11 +27,12 @@ also works on bot-protected storefronts where a plain fetch gets blocked.
   copyable recommended Product JSON-LD block.
 - An "ask the agent" box, answered deterministically from the audit result
   (or by a BYO model when a provider is selected in settings).
-- **Compare crawler view**: one click fetches the same URL's static HTML
-  through the local server and diffs it against the rendered page —
-  showing both scores and exactly which rules fail only for
-  non-rendering AI crawlers (your page's JavaScript dependence). If the
-  fetch hits bot protection, it says so: crawlers may be blocked entirely.
+- **Two view modes, right under the score**: "Rendered · 78 | Crawler · 65"
+  tabs switch the whole popup (dial, pillars, findings) between what a
+  browsing agent sees and what non-rendering AI crawlers receive, with a
+  one-line gap explanation (your page's JavaScript dependence). If the
+  crawler fetch hits bot protection, it says so: crawlers may be blocked
+  entirely.
 - Downloads: self-contained HTML report, full JSON result.
 - The popup follows your browser language (English / 中文) with a selector
   in the header; findings from the engine remain English.
