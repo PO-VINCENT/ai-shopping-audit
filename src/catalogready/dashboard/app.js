@@ -66,7 +66,7 @@ const DEMO_BAD_HTML = `<!doctype html>
 </html>`;
 
 const el = (id) => document.getElementById(id);
-const state = { result: null, draft: null, answers: {} };
+const state = { result: null, draft: null, answers: {}, grouping: "severity", metricFilter: null };
 
 /* ---------- helpers ---------- */
 
@@ -266,20 +266,76 @@ function renderTrace(result) {
     .join("");
 }
 
+const METRIC_ORDER = [
+  "machine_readability", "validity", "completeness", "consistency",
+  "trust", "accessibility", "transactability", "freshness",
+];
+
+function metricStatuses(findings) {
+  const status = {};
+  METRIC_ORDER.forEach((key) => (status[key] = { level: "clean", count: 0 }));
+  findings.forEach((item) => {
+    const entry = status[item.metric] || (status[item.metric] = { level: "clean", count: 0 });
+    entry.count += 1;
+    if (item.severity === "high") entry.level = "bad";
+    else if (entry.level !== "bad") entry.level = "warn";
+  });
+  return status;
+}
+
+function renderMetricStrip(findings) {
+  const status = metricStatuses(findings);
+  el("metric-strip").innerHTML = METRIC_ORDER.map((key) => {
+    const info = i18n.metricInfo(key);
+    const entry = status[key];
+    const active = state.metricFilter === key ? " is-active" : "";
+    const count = entry.count ? `<span class="m-count">${entry.count}</span>` : "";
+    return (
+      `<button class="metric-tile ${entry.level}${active}" type="button" data-metric="${key}"` +
+      ` title="${escapeHtml(info.question)}">` +
+      `<span class="m-dot" aria-hidden="true"></span>${escapeHtml(info.name)}${count}</button>`
+    );
+  }).join("");
+}
+
+function findingCard(item) {
+  const metricName = i18n.metricInfo(item.metric || "").name;
+  return (
+    `<div class="finding"><h4><span class="sev ${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span> ` +
+    `${escapeHtml(item.title)}<span class="chip">${escapeHtml(item.rule_id)}</span>` +
+    (item.metric ? `<span class="chip metric-chip">${escapeHtml(metricName)}</span>` : "") +
+    `</h4><p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
+  );
+}
+
 function renderFindings(findings) {
+  renderMetricStrip(findings);
   const order = { high: 0, medium: 1, low: 2 };
-  const sorted = [...findings].sort((a, b) => (order[a.severity] ?? 3) - (order[b.severity] ?? 3));
-  el("panel-findings").innerHTML = sorted.length
-    ? sorted
-        .map(
-          (item) =>
-            `<div class="finding"><h4><span class="sev ${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span> ` +
-            `${escapeHtml(item.title)}<span class="chip">${escapeHtml(item.rule_id)}</span></h4>` +
-            `<p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
-        )
-        .join("")
-    : `<p>${escapeHtml(i18n.t("noFindings"))}</p>`;
-  el("findings-count").textContent = String(sorted.length);
+  let visible = [...findings].sort((a, b) => (order[a.severity] ?? 3) - (order[b.severity] ?? 3));
+  if (state.metricFilter) {
+    visible = visible.filter((item) => item.metric === state.metricFilter);
+  }
+  const list = el("findings-list");
+  if (!visible.length) {
+    list.innerHTML = `<p>${escapeHtml(i18n.t("noFindings"))}</p>`;
+  } else if (state.grouping === "metric") {
+    list.innerHTML = METRIC_ORDER.map((key) => {
+      const group = visible.filter((item) => item.metric === key);
+      if (!group.length) return "";
+      const info = i18n.metricInfo(key);
+      return (
+        `<div class="metric-group"><h3>${escapeHtml(info.name)} ` +
+        `<span class="note">${escapeHtml(info.question)}</span></h3>` +
+        group.map(findingCard).join("") + `</div>`
+      );
+    }).join("");
+  } else {
+    list.innerHTML = visible.map(findingCard).join("");
+  }
+  el("findings-count").textContent = String(visible.length);
+  el("metric-filter-label").textContent = state.metricFilter
+    ? `· ${i18n.metricInfo(state.metricFilter).name}`
+    : "";
 }
 
 function renderQuestions(questions) {
@@ -354,6 +410,17 @@ function renderSummary() {
   }
   if (high || medium) {
     points.push(escapeHtml(i18n.t("summaryFindings", high, medium)));
+  }
+  const status = metricStatuses(findings);
+  const worst = METRIC_ORDER.filter((key) => status[key].level === "bad")
+    .sort((a, b) => status[b].count - status[a].count)[0];
+  if (worst) {
+    const highInWorst = findings.filter(
+      (f) => f.metric === worst && f.severity === "high"
+    ).length;
+    points.push(
+      escapeHtml(i18n.t("summaryWeakest", i18n.metricInfo(worst).name, highInWorst, status[worst].count))
+    );
   }
   if (blocking) {
     points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
@@ -505,6 +572,23 @@ el("pillars").addEventListener("click", (event) => {
   detail.hidden = expanded;
 });
 
+el("metric-strip").addEventListener("click", (event) => {
+  const tile = event.target.closest(".metric-tile");
+  if (!tile || !state.result) return;
+  state.metricFilter = state.metricFilter === tile.dataset.metric ? null : tile.dataset.metric;
+  renderFindings(state.result.findings || []);
+});
+
+document.querySelectorAll(".group-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.grouping = button.dataset.group;
+    document.querySelectorAll(".group-btn").forEach((item) =>
+      item.classList.toggle("is-active", item === button)
+    );
+    if (state.result) renderFindings(state.result.findings || []);
+  });
+});
+
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("is-active", item === tab));
@@ -539,6 +623,7 @@ el("url").addEventListener("input", () => {
 
 el("run").addEventListener("click", () => {
   state.answers = {};
+  state.metricFilter = null;
   runAgent("audit");
 });
 

@@ -210,3 +210,21 @@ footer {
   max-width: 1280px; margin: 0 auto;
 }
 .server-info.stale { color: var(--bad); font-weight: 600; }
+
+.metric-strip { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .9rem; }
+.metric-tile {
+  display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--panel); color: var(--fg);
+  padding: .3rem .7rem; font-size: .78rem; cursor: pointer;
+}
+.metric-tile:hover { background: var(--chip); }
+.metric-tile.is-active { outline: 2px solid var(--accent); }
+.m-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.metric-tile.warn .m-dot { background: var(--warn); }
+.metric-tile.bad .m-dot { background: var(--bad); }
+.m-count { background: var(--chip); border-radius: 999px; padding: 0 .4rem; font-size: .7rem; }
+.findings-toolbar { display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem; flex-wrap: wrap; }
+.group-btn.is-active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.metric-chip { background: var(--accent); color: #fff; opacity: .85; }
+.metric-group h3 { font-size: .92rem; margin: 1rem 0 .3rem; }
+.metric-group h3 .note { font-weight: 400; margin-left: .4rem; }

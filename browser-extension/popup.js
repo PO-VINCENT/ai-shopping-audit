@@ -256,6 +256,31 @@ function renderSummary() {
     (points.length ? `<ul>${points.map((p) => `<li>${p}</li>`).join("")}</ul>` : "");
 }
 
+const METRIC_ORDER = [
+  "machine_readability", "validity", "completeness", "consistency",
+  "trust", "accessibility", "transactability", "freshness",
+];
+
+function renderMetricStrip(findings) {
+  const status = {};
+  METRIC_ORDER.forEach((key) => (status[key] = { level: "clean", count: 0 }));
+  findings.forEach((item) => {
+    const entry = status[item.metric];
+    if (!entry) return;
+    entry.count += 1;
+    if (item.severity === "high") entry.level = "bad";
+    else if (entry.level !== "bad") entry.level = "warn";
+  });
+  $("metric-strip").innerHTML = METRIC_ORDER.map((key) => {
+    const entry = status[key];
+    const count = entry.count ? ` ${entry.count}` : "";
+    return (
+      `<span class="metric-tile ${entry.level}" title="${escapeHtml(i18n.metricLabel(key))}">` +
+      `<span class="m-dot"></span>${escapeHtml(i18n.metricLabel(key))}${count}</span>`
+    );
+  }).join("");
+}
+
 function renderFindings() {
   const findings = state.result.findings || [];
   const order = { high: 0, medium: 1, low: 2 };
@@ -265,12 +290,15 @@ function renderFindings() {
         .map(
           (item) =>
             `<div class="finding"><h4><span class="sev ${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span> ` +
-            `${escapeHtml(item.title)}<span class="chip">${escapeHtml(item.rule_id)}</span></h4>` +
+            `${escapeHtml(item.title)}<span class="chip">${escapeHtml(item.rule_id)}</span>` +
+            (item.metric ? `<span class="chip metric-chip">${escapeHtml(i18n.metricLabel(item.metric))}</span>` : "") +
+            `</h4>` +
             `<p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
         )
         .join("")
     : `<p class='note'>${escapeHtml(i18n.t("noFindings"))}</p>`;
   $("findings-count").textContent = String(sorted.length);
+  renderMetricStrip(findings);
 }
 
 function renderQuestions() {

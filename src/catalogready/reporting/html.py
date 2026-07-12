@@ -19,6 +19,17 @@ PILLAR_LABELS = {
     "claim_grounding": "Claim grounding",
 }
 
+METRIC_LABELS = {
+    "machine_readability": "Readability",
+    "validity": "Validity",
+    "completeness": "Completeness",
+    "consistency": "Consistency",
+    "trust": "Trust",
+    "accessibility": "Accessibility",
+    "transactability": "Transactability",
+    "freshness": "Freshness",
+}
+
 _SEVERITY_ORDER = ("high", "medium", "low")
 
 _CSS = """
@@ -77,6 +88,16 @@ table { border-collapse: collapse; width: 100%; font-size: .85rem; }
 td, th { border-bottom: 1px solid var(--border); padding: .4rem .5rem; text-align: left; }
 footer { margin-top: 2.5rem; color: var(--muted); font-size: .8rem; }
 .badges { color: var(--muted); font-size: .82rem; margin-top: .5rem; }
+.metric-strip { display: flex; gap: .4rem; flex-wrap: wrap; margin: 1rem 0 .2rem; }
+.metric-tile {
+  display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--card); padding: .25rem .6rem; font-size: .76rem;
+}
+.m-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.metric-tile.warn .m-dot { background: var(--warn); }
+.metric-tile.bad .m-dot { background: var(--bad); }
+.m-count { background: var(--chip); border-radius: 999px; padding: 0 .4rem; font-size: .68rem; }
+.metric-chip { background: var(--accent); color: #fff; }
 """
 
 
@@ -121,6 +142,28 @@ def _pillar_rows(components: dict[str, Any]) -> str:
     return "".join(rows)
 
 
+def _metric_strip(findings: list[dict[str, Any]]) -> str:
+    status = {key: {"level": "clean", "count": 0} for key in METRIC_LABELS}
+    for item in findings:
+        entry = status.get(item.get("metric") or "")
+        if entry is None:
+            continue
+        entry["count"] += 1
+        if item.get("severity") == "high":
+            entry["level"] = "bad"
+        elif entry["level"] != "bad":
+            entry["level"] = "warn"
+    tiles = []
+    for key, label in METRIC_LABELS.items():
+        entry = status[key]
+        count = f'<span class="m-count">{entry["count"]}</span>' if entry["count"] else ""
+        tiles.append(
+            f'<span class="metric-tile {entry["level"]}">'
+            f'<span class="m-dot"></span>{html.escape(label)}{count}</span>'
+        )
+    return '<div class="metric-strip">' + "".join(tiles) + "</div>"
+
+
 def _findings_section(findings: list[dict[str, Any]]) -> str:
     if not findings:
         return "<p>No findings were produced. Everything checked is machine-readable.</p>"
@@ -133,7 +176,13 @@ def _findings_section(findings: list[dict[str, Any]]) -> str:
                 '<div class="finding">'
                 f'<h3><span class="sev {severity}">{severity}</span> '
                 f"{html.escape(str(item.get('title', 'Finding')))}"
-                f'<span class="chip">{html.escape(str(item.get("rule_id", "")))}</span></h3>'
+                f'<span class="chip">{html.escape(str(item.get("rule_id", "")))}</span>'
+                + (
+                    f'<span class="chip metric-chip">{html.escape(METRIC_LABELS.get(str(item.get("metric")), ""))}</span>'
+                    if item.get("metric") in METRIC_LABELS
+                    else ""
+                )
+                + "</h3>"
                 f"<p>{html.escape(str(item.get('evidence', '')))}</p>"
                 f'<p class="fix">→ {html.escape(str(item.get("recommendation", "")))}</p>'
                 "</div>"
@@ -282,6 +331,7 @@ def _agent_report(result: dict[str, Any]) -> str:
     <button onclick="downloadCard()">Download score card (PNG)</button>
     <button onclick="copyText('jsonld', this)">Copy recommended JSON-LD</button>
   </div>
+  {_metric_strip(findings)}
   <h2>Findings ({issue_line})</h2>
   {_findings_section(findings)}
   {questions_html}

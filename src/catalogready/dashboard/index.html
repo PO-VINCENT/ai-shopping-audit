@@ -76,6 +76,7 @@
             <p class="note score-note" data-i18n="scoreNote"></p>
           </div>
         </div>
+        <div id="metric-strip" class="metric-strip"></div>
         <div id="caps"></div>
 
         <div id="summary" class="summary"></div>
@@ -89,7 +90,15 @@
           <button class="tab" data-tab="evidence" type="button"><span data-i18n="tabEvidence"></span></button>
         </nav>
 
-        <section id="panel-findings" class="panel"></section>
+        <section id="panel-findings" class="panel">
+          <div class="findings-toolbar">
+            <span class="note" data-i18n="groupBy"></span>
+            <button class="secondary group-btn is-active" data-group="severity" type="button" data-i18n="groupSeverity"></button>
+            <button class="secondary group-btn" data-group="metric" type="button" data-i18n="groupMetric"></button>
+            <span id="metric-filter-label" class="note"></span>
+          </div>
+          <div id="findings-list"></div>
+        </section>
 
         <section id="panel-questions" class="panel" hidden>
           <p class="note" data-i18n="questionsNote"></p>

@@ -101,6 +101,22 @@ const I18N = {
     error: (message) => `Error: ${message}`,
     keyHint:
       "To use a model provider, add its key to the server's .env (e.g. OPENAI_API_KEY=… and OPENAI_MODEL=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
+    groupBy: "Group by",
+    groupSeverity: "Severity",
+    groupMetric: "Metric",
+    summaryWeakest: (metric, high, total) =>
+      `Weakest area: ${metric} (${high} critical of ${total} findings).`,
+    metricAll: "All findings",
+    metrics: {
+      machine_readability: { name: "Readability", question: "Can a parser extract the product at all?" },
+      validity: { name: "Validity", question: "Is the data well-formed against its standard?" },
+      completeness: { name: "Completeness", question: "Are the fields agents require present?" },
+      consistency: { name: "Consistency", question: "Does the markup match the visible page?" },
+      trust: { name: "Trust", question: "Can the claims be believed?" },
+      accessibility: { name: "Accessibility", question: "Can AI crawlers reach and cite it?" },
+      transactability: { name: "Transactability", question: "Could an agent complete a purchase?" },
+      freshness: { name: "Freshness", question: "Is the data current?" },
+    },
     pillars: {
       product_identity: "Product identity",
       offer_completeness: "Offer completeness",
@@ -240,6 +256,22 @@ const I18N = {
     error: (message) => `错误：${message}`,
     keyHint:
       "使用模型提供方需在服务器的 .env 中配置密钥（如 OPENAI_API_KEY=… 和 OPENAI_MODEL=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
+    groupBy: "分组方式",
+    groupSeverity: "按严重程度",
+    groupMetric: "按度量维度",
+    summaryWeakest: (metric, high, total) =>
+      `最薄弱维度：${metric}（${total} 项问题中 ${high} 项严重）。`,
+    metricAll: "全部问题",
+    metrics: {
+      machine_readability: { name: "机器可读性", question: "解析器能否提取出商品信息？" },
+      validity: { name: "数据有效性", question: "数据是否符合相应标准格式？" },
+      completeness: { name: "完整性", question: "AI 助手所需字段是否齐全？" },
+      consistency: { name: "一致性", question: "标记数据与页面显示是否一致？" },
+      trust: { name: "可信度", question: "页面宣称是否可信有据？" },
+      accessibility: { name: "可达性", question: "AI 爬虫能否访问并引用该页？" },
+      transactability: { name: "可交易性", question: "AI 助手能否据此完成购买？" },
+      freshness: { name: "时效性", question: "数据是否保持最新？" },
+    },
     pillars: {
       product_identity: "商品身份",
       offer_completeness: "报价完整性",
@@ -322,6 +354,11 @@ const i18n = {
 
   pillarExplain() {
     return (I18N[this.lang] || I18N.en).pillarExplain;
+  },
+
+  metricInfo(key) {
+    const table = I18N[this.lang] || I18N.en;
+    return table.metrics[key] || I18N.en.metrics[key] || { name: key, question: "" };
   },
 
   checkLabel(key) {

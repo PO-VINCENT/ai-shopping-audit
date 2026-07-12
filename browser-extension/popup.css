@@ -118,3 +118,12 @@ pre { background: var(--panel); border: 1px solid var(--border); border-radius: 
 footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: center; }
 .help-line { margin-top: .5rem; }
 .help-line a { color: var(--accent); }
+.metric-strip { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .5rem; }
+.metric-tile {
+  display: inline-flex; align-items: center; gap: .25rem; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--panel); padding: .15rem .5rem; font-size: .66rem;
+}
+.m-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+.metric-tile.warn .m-dot { background: var(--warn); }
+.metric-tile.bad .m-dot { background: var(--bad); }
+.metric-chip { background: var(--accent); color: #fff; opacity: .85; }

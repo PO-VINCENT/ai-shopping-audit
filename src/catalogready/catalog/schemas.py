@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypedDict
 
+from .metrics import metric_for
 
 Severity = Literal["low", "medium", "high"]
 ScoreStatus = Literal["measured", "not_run", "unavailable"]
@@ -16,6 +17,7 @@ class Finding(TypedDict):
     evidence: str
     recommendation: str
     source: str
+    metric: str
 
 
 class ScoreSection(TypedDict):
@@ -39,6 +41,7 @@ def finding(
         "evidence": evidence,
         "recommendation": recommendation,
         "source": source,
+        "metric": metric_for(rule_id),
     }
 
 

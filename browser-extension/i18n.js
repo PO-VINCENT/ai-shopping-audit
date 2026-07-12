@@ -57,6 +57,16 @@ const I18N = {
     helpNeed: "Questions or fix help:",
     keyHint:
       "To use a model provider, add its key to the local server's .env (e.g. OPENAI_API_KEY=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
+    metrics: {
+      machine_readability: "Readability",
+      validity: "Validity",
+      completeness: "Completeness",
+      consistency: "Consistency",
+      trust: "Trust",
+      accessibility: "Accessibility",
+      transactability: "Transactability",
+      freshness: "Freshness",
+    },
     pillars: {
       product_identity: "Product identity",
       offer_completeness: "Offer completeness",
@@ -142,6 +152,16 @@ const I18N = {
     helpNeed: "问题反馈或修复求助：",
     keyHint:
       "使用模型提供方需在本地服务器的 .env 中配置密钥（如 OPENAI_API_KEY=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
+    metrics: {
+      machine_readability: "机器可读性",
+      validity: "数据有效性",
+      completeness: "完整性",
+      consistency: "一致性",
+      trust: "可信度",
+      accessibility: "可达性",
+      transactability: "可交易性",
+      freshness: "时效性",
+    },
     pillars: {
       product_identity: "商品身份",
       offer_completeness: "报价完整性",
@@ -216,6 +236,11 @@ const i18n = {
   pillarLabel(key) {
     const table = I18N[this.lang] || I18N.en;
     return table.pillars[key] || I18N.en.pillars[key] || key;
+  },
+
+  metricLabel(key) {
+    const table = I18N[this.lang] || I18N.en;
+    return table.metrics[key] || I18N.en.metrics[key] || key;
   },
 
   checkLabel(key) {

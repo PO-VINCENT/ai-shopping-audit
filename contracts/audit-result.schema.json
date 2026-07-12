@@ -32,7 +32,14 @@
           "title": { "type": "string" },
           "evidence": { "type": "string" },
           "recommendation": { "type": "string" },
-          "source": { "const": "deterministic_rule" }
+          "source": { "const": "deterministic_rule" },
+          "metric": {
+            "enum": [
+              "machine_readability", "validity", "completeness", "consistency",
+              "trust", "accessibility", "transactability", "freshness"
+            ],
+            "description": "Diagnostic measurement category (docs/METRICS.md); status, never a second score."
+          }
         }
       }
     }
