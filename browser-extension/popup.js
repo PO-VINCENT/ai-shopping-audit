@@ -119,6 +119,7 @@ async function analyze() {
     render();
     setStatus("");
     autoDraft();
+    autoOnlineChecks();
   } catch (error) {
     setStatus(friendlyError(error.message), true);
   } finally {
@@ -140,6 +141,7 @@ async function resume() {
     render();
     setStatus("");
     autoDraft();
+    autoOnlineChecks();
   } catch (error) {
     setStatus(error.message, true);
   } finally {
@@ -154,6 +156,26 @@ async function autoDraft() {
     renderSummary();
   } catch (error) {
     /* fix suggestions are best-effort */
+  }
+}
+
+async function autoOnlineChecks() {
+  // Bounded image-size checks via the local server (max 3 fetches).
+  // Informational: findings are appended, the score never changes.
+  try {
+    const images = state.result?.evidence_record?.product?.images || [];
+    if (!images.length) return;
+    const payload = await api("/v1/online-checks", {
+      url: state.page.url,
+      images,
+    });
+    if (payload.findings?.length) {
+      state.result.findings.push(...payload.findings);
+      renderFindings();
+      renderSummary();
+    }
+  } catch (error) {
+    /* online checks are best-effort */
   }
 }
 

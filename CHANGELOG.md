@@ -4,6 +4,10 @@
 
 ### Added
 
+- The extension (v0.6.1) and dashboard run the bounded image-size check
+  automatically after every audit via the new `/v1/online-checks` route
+  (adapter-level, max 3 fetches by the local server). Findings are
+  appended as informational; the deterministic score never changes.
 - `catalogready audit --online`: the two network-dependent rules, opt-in
   and adapter-layer only. GEO-IMAGE-002 fetches up to three product
   images (bounded reads, stdlib header sniffing for PNG/GIF/JPEG/WebP)

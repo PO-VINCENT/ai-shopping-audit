@@ -186,6 +186,27 @@ async function autoDraft() {
   } catch (error) {
     /* auto-suggestions are best-effort; the manual Draft button still works */
   }
+  autoOnlineChecks();
+}
+
+async function autoOnlineChecks() {
+  // Bounded image-size checks via the local server (max 3 fetches).
+  // Informational: findings are appended, the score never changes.
+  try {
+    const images = state.result?.evidence_record?.product?.images || [];
+    if (!images.length) return;
+    const payload = await api("/v1/online-checks", {
+      url: el("url").value.trim(),
+      images,
+    });
+    if (payload.findings?.length) {
+      state.result.findings.push(...payload.findings);
+      renderFindings(state.result.findings);
+      renderSummary();
+    }
+  } catch (error) {
+    /* online checks are best-effort */
+  }
 }
 
 /* ---------- rendering ---------- */

@@ -48,6 +48,29 @@ def health_payload() -> dict[str, Any]:
     }
 
 
+def online_checks_payload(body: dict[str, Any], runner: Any = None) -> dict[str, Any]:
+    """Run the opt-in online checks (bounded image fetches, IndexNow).
+
+    Adapter-level, like /v1/fetch: the service layer stays offline.
+    """
+
+    url = str(body.get("url") or "").strip()
+    if not url.startswith(("http://", "https://")):
+        raise ValueError("url must start with http:// or https://")
+    images = body.get("images")
+    if not isinstance(images, list) or not all(isinstance(item, str) for item in images):
+        raise ValueError("images must be an array of URLs")
+    if runner is None:
+        from .online import run_online_checks as runner  # local import: adapter-only
+    findings = runner(url, images, str(body.get("indexnow_key") or "") or None)
+    return {
+        "schema_version": "1.0",
+        "operation": "online_checks",
+        "findings": findings,
+        "notice": "Online findings are informational and do not change the deterministic score.",
+    }
+
+
 def fetch_url_payload(url: str) -> dict[str, Any]:
     """Fetch one user-named product page for the dashboard.
 
@@ -172,6 +195,9 @@ class CatalogReadyHandler(BaseHTTPRequestHandler):
                         HTTPStatus.BAD_GATEWAY,
                         {"detail": f"Could not fetch the page: {exc}"},
                     )
+                return
+            if path == "/v1/online-checks":
+                self._send_json(HTTPStatus.OK, online_checks_payload(body))
                 return
             if path == "/v1/execute":
                 operation = str(body.get("operation", ""))

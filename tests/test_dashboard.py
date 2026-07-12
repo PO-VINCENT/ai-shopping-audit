@@ -45,6 +45,28 @@ class DashboardTests(unittest.TestCase):
         # module only in dev flows; the flag must at least be a boolean.
         self.assertIsInstance(payload["stale"], bool)
 
+    def test_online_checks_payload_validates_and_delegates(self) -> None:
+        from catalogready.local_server import online_checks_payload
+
+        captured = {}
+
+        def fake_runner(url, images, key):
+            captured.update(url=url, images=images, key=key)
+            return [{"rule_id": "GEO-IMAGE-002"}]
+
+        payload = online_checks_payload(
+            {"url": "https://example.com/p", "images": ["https://e/a.png"], "indexnow_key": "k" * 10},
+            runner=fake_runner,
+        )
+        self.assertEqual(payload["operation"], "online_checks")
+        self.assertEqual(len(payload["findings"]), 1)
+        self.assertEqual(captured["images"], ["https://e/a.png"])
+        self.assertEqual(captured["key"], "k" * 10)
+        with self.assertRaises(ValueError):
+            online_checks_payload({"url": "ftp://x", "images": []}, runner=fake_runner)
+        with self.assertRaises(ValueError):
+            online_checks_payload({"url": "https://x", "images": "nope"}, runner=fake_runner)
+
     def test_fetch_route_rejects_non_http_schemes(self) -> None:
         for url in ("file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)", ""):
             with self.subTest(url=url), self.assertRaises(ValueError):
