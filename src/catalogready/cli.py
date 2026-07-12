@@ -52,6 +52,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the full JSON result instead of the score card",
     )
+    audit.add_argument(
+        "--online",
+        action="store_true",
+        help="Also fetch product images (max 3) to check marketplace size minimums",
+    )
+    audit.add_argument(
+        "--indexnow-key",
+        default="",
+        help="With --online: verify your IndexNow key file is hosted correctly",
+    )
 
     subparsers.add_parser(
         "chat",
@@ -202,6 +212,21 @@ def main() -> None:
             print(f"Fetching {args.url} (single request) ...", file=sys.stderr)
             html = fetch_page(args.url)
         result = run_product_agent_html(args.url, html, mode="audit")
+        if args.online:
+            from .online import run_online_checks
+
+            print("Running online checks (bounded image fetches) ...", file=sys.stderr)
+            online_findings = run_online_checks(
+                args.url,
+                (result.get("evidence_record", {}).get("product", {}).get("images") or []),
+                args.indexnow_key or None,
+            )
+            result["findings"].extend(online_findings)
+            result["online_checks"] = {
+                "ran": True,
+                "findings": len(online_findings),
+                "notice": "Online findings are informational and do not change the deterministic score.",
+            }
         report_path = Path(args.report)
         report_path.write_text(render_html_report(result), encoding="utf-8")
         output = (

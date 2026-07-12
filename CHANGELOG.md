@@ -4,6 +4,16 @@
 
 ### Added
 
+- `catalogready audit --online`: the two network-dependent rules, opt-in
+  and adapter-layer only. GEO-IMAGE-002 fetches up to three product
+  images (bounded reads, stdlib header sniffing for PNG/GIF/JPEG/WebP)
+  and flags files below Google's 500×500 minimum (high when below
+  Microsoft's 220×220 floor or unfetchable). SEO-INDEXNOW-001 verifies
+  the merchant's IndexNow key file with `--indexnow-key` (keys are named
+  by the key itself, so participation is not externally discoverable).
+  Rule logic is pure and offline-tested; online findings are
+  informational and never change the deterministic score. Every candidate
+  rule from the platform research is now implemented.
 - Round three: the agentic-checkout trust layer, researched against the
   UCP spec (ucp.dev, Google/Shopify-led), OpenAI's ACP checkout schema,
   and Microsoft's MMC UCP-readiness docs. Four new page rules:

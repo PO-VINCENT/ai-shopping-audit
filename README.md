@@ -220,6 +220,9 @@ uv run catalogready audit https://your-store.com/products/example saved-page.htm
 
 # machine-readable output
 uv run catalogready audit <url> [saved.html] --json
+
+# also fetch product images to check marketplace size minimums (max 3 requests)
+uv run catalogready audit <url> --online
 ```
 
 Fetching is exactly one HTTP GET for the page you name. The audit engine

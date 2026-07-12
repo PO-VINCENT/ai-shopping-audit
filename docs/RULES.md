@@ -282,22 +282,23 @@ which Microsoft's Content API accepts near-verbatim.
 
 ---
 
-## Proposed rules (collected, not yet implemented)
+## Online-mode rules (`catalogready audit --online`)
 
-Of the eleven candidate rules collected from platform documentation, nine
-are implemented above. The remaining two need network access and therefore
-cannot live in the no-network deterministic core; they would fit an
-explicit online mode. Contributions welcome — each needs a deterministic
-check and a fixture (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
+Two rules need network access and therefore run only in the explicit
+online mode — never in the deterministic core (rule logic stays offline
+and tested; only bounded fetching lives in the adapter). Online findings
+are informational and do not change the score.
 
-| Candidate ID | Would check | Source | Why deferred |
+| Rule | Severity | Checks | Source |
 |---|---|---|---|
-| GEO-IMAGE-002 | image files meet minimum dimensions (≥500×500 for GMC by Jan 2027; ≥220×220 for MMC, 250×250 for apparel) | [GMC spec](https://support.google.com/merchants/answer/7052112); [MMC attributes](https://help.ads.microsoft.com/apex/index/3/en/51084) | requires fetching the image bytes (GEO-IMAGE-001 covers the offline-checkable URL shape) |
-| SEO-INDEXNOW-001 | site exposes an IndexNow key file (freshness signal for price/stock changes) | [IndexNow](https://www.indexnow.org/documentation); [Bing shopping-freshness blog](https://blogs.bing.com/webmaster/May-2025/IndexNow-Enables-Faster-and-More-Reliable-Updates-for-Shopping-and-Ads) | requires a GET for the key file |
+| GEO-IMAGE-002 | medium / high | product image files (max 3 fetched, bounded reads) are fetchable and meet marketplace minimums: ≥500×500 (GMC, enforcement announced for Jan 2027); below Microsoft's 220×220 floor or unfetchable escalates to high | [GMC spec](https://support.google.com/merchants/answer/7052112); [MMC attributes](https://help.ads.microsoft.com/apex/index/3/en/51084) |
+| SEO-INDEXNOW-001 | low | the merchant's IndexNow key file is hosted at `https://host/{key}.txt` with matching content (`--indexnow-key`). Keys are named by the key itself, so participation is **not externally discoverable** — the merchant must supply theirs | [IndexNow](https://www.indexnow.org/documentation); [Bing shopping-freshness blog](https://blogs.bing.com/webmaster/May-2025/IndexNow-Enables-Faster-and-More-Reliable-Updates-for-Shopping-and-Ads) |
 
-Not proposed: DeepSeek-specific rules (no documented requirements exist) and
-training-crawler rules (GPTBot / ClaudeBot / Google-Extended do not affect
-answer inclusion, per each vendor's documentation).
+Every candidate rule collected from platform documentation is now
+implemented. Not implemented by design: DeepSeek-specific rules (no
+documented requirements exist) and training-crawler rules
+(GPTBot / ClaudeBot / Google-Extended do not affect answer inclusion,
+per each vendor's documentation).
 
 ---
 
