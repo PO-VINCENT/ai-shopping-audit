@@ -117,6 +117,7 @@ async function analyze() {
     state.result = await runAgent("audit");
     state.draft = null;
     render();
+    $("compare").innerHTML = "";
     setStatus("");
     autoDraft();
     autoOnlineChecks();
@@ -139,6 +140,7 @@ async function resume() {
     state.result = await runAgent("audit");
     state.draft = null;
     render();
+    $("compare").innerHTML = "";
     setStatus("");
     autoDraft();
     autoOnlineChecks();
@@ -391,6 +393,61 @@ async function ask() {
   }
 }
 
+/* ---------- compare views ---------- */
+
+const BOT_WALL = /pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i;
+
+async function compareViews() {
+  if (!state.result) return;
+  const button = $("compare-btn");
+  button.disabled = true;
+  setStatus(i18n.t("statusComparing"));
+  const box = $("compare");
+  try {
+    const fetched = await api("/v1/fetch", { url: state.page.url });
+    if (BOT_WALL.test(fetched.html)) {
+      box.innerHTML = `<div class="cap">${escapeHtml(i18n.t("compareBotWall"))}</div>`;
+      setStatus("");
+      return;
+    }
+    const staticResult = await api("/v1/agent/html", {
+      url: state.page.url,
+      html: fetched.html,
+      mode: "audit",
+    });
+    const renderedScore = state.result.readiness.before.score;
+    const staticScore = staticResult.readiness.before.score;
+    const renderedRules = new Set((state.result.findings || []).map((f) => f.rule_id));
+    const staticRules = new Set((staticResult.findings || []).map((f) => f.rule_id));
+    const onlyStatic = (staticResult.findings || []).filter((f) => !renderedRules.has(f.rule_id));
+    const onlyRendered = (state.result.findings || []).filter((f) => !staticRules.has(f.rule_id));
+
+    const rows = (label, items) =>
+      items.length
+        ? `<p class="note">${escapeHtml(label)}</p><ul class="compare-list">` +
+          items.slice(0, 6).map((f) =>
+            `<li><span class="chip">${escapeHtml(f.rule_id)}</span> ${escapeHtml(f.title)}</li>`
+          ).join("") + "</ul>"
+        : "";
+    const gap = Math.abs(renderedScore - staticScore);
+    box.innerHTML =
+      `<div class="compare-box"><h3>${escapeHtml(i18n.t("compareTitle"))}</h3>` +
+      `<div class="compare-scores">` +
+      `<span>${escapeHtml(i18n.t("compareRendered"))}: <strong>${renderedScore}</strong></span>` +
+      `<span>${escapeHtml(i18n.t("compareCrawler"))}: <strong>${staticScore}</strong></span></div>` +
+      `<p class="note">${escapeHtml(gap ? i18n.t("compareGap", gap) : i18n.t("compareSame"))}</p>` +
+      rows(i18n.t("compareOnlyStatic"), onlyStatic) +
+      rows(i18n.t("compareOnlyRendered"), onlyRendered) +
+      `</div>`;
+    setStatus("");
+  } catch (error) {
+    box.innerHTML = `<p class="note">${escapeHtml(i18n.t("compareError", error.message))}</p>`;
+    setStatus("");
+  } finally {
+    button.disabled = false;
+  }
+}
+
 /* ---------- downloads ---------- */
 
 function download(filename, text, type) {
@@ -433,6 +490,7 @@ $("copy-jsonld").addEventListener("click", (event) => {
     setTimeout(() => (event.target.textContent = i18n.t("copy")), 1200);
   });
 });
+$("compare-btn").addEventListener("click", compareViews);
 $("copy-json").addEventListener("click", async () => {
   if (!state.result) return;
   await navigator.clipboard.writeText(JSON.stringify(state.draft || state.result, null, 2));

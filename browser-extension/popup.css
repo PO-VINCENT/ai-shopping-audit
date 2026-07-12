@@ -127,3 +127,8 @@ footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: 
 .metric-tile.warn .m-dot { background: var(--warn); }
 .metric-tile.bad .m-dot { background: var(--bad); }
 .metric-chip { background: var(--accent); color: #fff; opacity: .85; }
+.compare-box { border: 1px solid var(--border); border-radius: 9px; padding: .55rem .7rem; margin-top: .6rem; background: var(--panel); }
+.compare-box h3 { margin: 0 0 .3rem; font-size: .8rem; }
+.compare-scores { display: flex; gap: 1rem; font-size: .78rem; margin-bottom: .3rem; }
+.compare-list { margin: .2rem 0 .4rem; padding-left: 1rem; font-size: .72rem; }
+.compare-list li { margin: .15rem 0; list-style: none; }

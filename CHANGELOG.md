@@ -4,6 +4,11 @@
 
 ### Added
 
+- Extension (v0.6.3): **Compare crawler view** — audits the same URL's
+  static HTML via the local server and diffs it against the rendered
+  page: both scores side by side, the JavaScript-dependence gap, and the
+  rules that fail only in each view. Detects bot-protection responses
+  ("crawlers may be blocked entirely"). Localized EN/中文.
 - The audited HTML source is now labeled in both UIs: the dashboard
   marks fetched-vs-supplied HTML and the extension marks the rendered
   page, with a note that the score gap between the two views measures
