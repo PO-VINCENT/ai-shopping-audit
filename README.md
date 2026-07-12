@@ -141,7 +141,7 @@ One command serves the web UI and the local API on the same port and opens
 your browser:
 
 ```bash
-uv run catalogready dashboard
+uvx --from catalogready-ai catalogready dashboard   # or: uv run catalogready dashboard
 ```
 
 Enter a product URL and press Audit — the local server fetches the page
@@ -154,21 +154,95 @@ explanations, inline merchant questions, a paste-ready JSON-LD patch, an
 your browser language (English / 中文, switchable in the header). Everything
 runs locally; the page never asks for API keys.
 
-## Use it with ChatGPT, Claude, Gemini, Copilot, or DeepSeek
+## Quick start with ChatGPT, Claude, Gemini, or DeepSeek
 
 CatalogReady ships an MCP server, so the AI assistant you already use can
-audit pages as a tool:
+audit product pages as a tool. Then just ask it: *"Fetch
+https://store.example/products/x and run the CatalogReady agent on the
+HTML — summarize the score and the top fixes."*
+
+**Claude Code** — one line:
 
 ```bash
 claude mcp add catalogready -- uvx --from catalogready-ai catalogready-mcp
 ```
 
-**[docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md)**
-has copy-paste setups for **ChatGPT/Codex**, **Claude** (Code + Desktop),
-**Gemini** (CLI + Enterprise A2A), **Copilot** (VS Code agent mode), and
-**DeepSeek** — covering both directions: the assistant calling
-CatalogReady as a tool, and each vendor as the optional BYO model inside
-CatalogReady. Protocol details: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md).
+<details>
+<summary><strong>ChatGPT / Codex CLI</strong></summary>
+
+Add to `~/.codex/config.toml` (or a trusted project's `.codex/config.toml`):
+
+```toml
+[mcp_servers.catalogready]
+command = "uvx"
+args = ["--from", "catalogready-ai", "catalogready-mcp"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+```
+
+ChatGPT's web/desktop connectors expect remote MCP servers; for a local
+audit tool, Codex CLI is the supported path today.
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Add to `claude_desktop_config.json` → `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "catalogready": {
+      "command": "uvx",
+      "args": ["--from", "catalogready-ai", "catalogready-mcp"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Gemini CLI</strong></summary>
+
+Add to `.gemini/settings.json` (this repo ships one):
+
+```json
+{
+  "mcpServers": {
+    "catalogready": {
+      "command": "uvx",
+      "args": ["--from", "catalogready-ai", "catalogready-mcp"],
+      "trust": false
+    }
+  }
+}
+```
+
+Gemini Enterprise can use the A2A agent card instead — see
+[docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md).
+</details>
+
+<details>
+<summary><strong>DeepSeek</strong> (as the model inside CatalogReady)</summary>
+
+DeepSeek has no MCP client, so the integration runs the other way: use
+DeepSeek as the optional model powering CatalogReady's chat answers and
+listing drafts:
+
+```bash
+# .env next to where you run the server
+DEEPSEEK_API_KEY=…
+DEEPSEEK_MODEL=deepseek-chat
+```
+
+Then pick **DeepSeek** in the dashboard/extension, or `--provider deepseek`.
+The same pattern works for OpenAI, Gemini, and Claude keys — see
+[docs/BYO-KEYS.md](docs/BYO-KEYS.md).
+</details>
+
+The full guide — including **Copilot** (VS Code agent mode) and each
+vendor as the BYO model inside CatalogReady — is
+[docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md).
 
 ## How it compares
 
