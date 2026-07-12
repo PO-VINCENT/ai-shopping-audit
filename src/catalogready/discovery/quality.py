@@ -271,6 +271,30 @@ def audit_page_quality(
             )
         )
 
+    # GEO-POLICY-001 — checkout trust links (privacy policy + terms).
+    if products:
+        link_blobs = [f"{href.lower()} {text}" for href, text in signals.links]
+        has_privacy = any("privacy" in blob for blob in link_blobs)
+        has_terms = any(
+            "terms" in blob or "conditions" in blob or re.search(r"\btos\b", blob)
+            for blob in link_blobs
+        )
+        missing = [
+            name
+            for name, present in (("privacy policy", has_privacy), ("terms of service", has_terms))
+            if not present
+        ]
+        if missing:
+            findings.append(
+                finding(
+                    "GEO-POLICY-001",
+                    "medium",
+                    "Checkout trust links are missing",
+                    f"No link to a {' or '.join(missing)} was found on the page.",
+                    "Link the privacy policy and terms of service; agentic checkout requires both as functional URLs.",
+                )
+            )
+
     # SEO-HTTPS-001 — agents and checkout flows expect secure URLs.
     insecure = []
     if (signals.canonical or "").startswith("http://"):

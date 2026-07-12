@@ -87,5 +87,42 @@ class PageHygieneTests(unittest.TestCase):
         self.assertNotIn("SEO-HTTPS-001", _rule_ids(html))
 
 
+class CheckoutTrustTests(unittest.TestCase):
+    _LINKS = '<a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a>'
+
+    def test_missing_policy_links_are_flagged(self) -> None:
+        self.assertIn("GEO-POLICY-001", _rule_ids(_page(_product())))
+        with_links = _page(_product(), body=f"<p>A fine product.</p>{self._LINKS}")
+        self.assertNotIn("GEO-POLICY-001", _rule_ids(with_links))
+
+    def test_incomplete_return_policy_markup(self) -> None:
+        incomplete = _page(_product(offer_extra=',"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy"}'))
+        self.assertIn("GEO-RETURNS-002", _rule_ids(incomplete))
+        by_link = _page(_product(
+            offer_extra=',"hasMerchantReturnPolicy":{"merchantReturnLink":"https://example.com/returns"}'
+        ))
+        self.assertNotIn("GEO-RETURNS-002", _rule_ids(by_link))
+        by_fields = _page(_product(
+            offer_extra=',"hasMerchantReturnPolicy":{"applicableCountry":"AU","returnPolicyCategory":"https://schema.org/MerchantReturnFiniteReturnWindow"}'
+        ))
+        self.assertNotIn("GEO-RETURNS-002", _rule_ids(by_fields))
+
+    def test_empty_shipping_details_markup(self) -> None:
+        empty = _page(_product(offer_extra=',"shippingDetails":{"@type":"OfferShippingDetails"}'))
+        self.assertIn("GEO-SHIPPING-002", _rule_ids(empty))
+        populated = _page(_product(
+            offer_extra=',"shippingDetails":{"shippingRate":{"value":"9.95","currency":"AUD"}}'
+        ))
+        self.assertNotIn("GEO-SHIPPING-002", _rule_ids(populated))
+
+    def test_missing_seller_identity(self) -> None:
+        no_brand = _page(_product())  # sku + offer, no brand/seller/Organization
+        self.assertIn("GEO-SELLER-001", _rule_ids(no_brand))
+        branded = _page(_product(product_extra=',"brand":{"@type":"Brand","name":"Acme"}'))
+        self.assertNotIn("GEO-SELLER-001", _rule_ids(branded))
+        with_seller = _page(_product(offer_extra=',"seller":{"@type":"Organization","name":"Acme Store"}'))
+        self.assertNotIn("GEO-SELLER-001", _rule_ids(with_seller))
+
+
 if __name__ == "__main__":
     unittest.main()

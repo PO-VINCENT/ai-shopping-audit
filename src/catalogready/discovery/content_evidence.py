@@ -19,6 +19,9 @@ class PageSignals(HTMLParser):
         self.robots: str = ""
         self.description: str = ""
         self.lang: str = ""
+        self.links: list[tuple[str, str]] = []
+        self._link_href: str | None = None
+        self._link_text: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = {key.lower(): value or "" for key, value in attrs}
@@ -41,9 +44,16 @@ class PageSignals(HTMLParser):
             self.robots = values.get("content", "").lower()
         elif lowered == "meta" and values.get("name", "").lower() == "description":
             self.description = values.get("content", "").strip()
+        elif lowered == "a":
+            self._link_href = values.get("href", "")
+            self._link_text = []
 
     def handle_endtag(self, tag: str) -> None:
         lowered = tag.lower()
+        if lowered == "a" and self._link_href is not None:
+            self.links.append((self._link_href, " ".join(self._link_text).strip().lower()))
+            self._link_href = None
+            self._link_text = []
         if lowered == "title":
             self.in_title = False
         elif lowered in {"style", "noscript"} and self.ignored_depth:
@@ -69,6 +79,8 @@ class PageSignals(HTMLParser):
             return
         if self.in_title:
             self.title_parts.append(cleaned)
+        if self._link_href is not None:
+            self._link_text.append(cleaned)
         self.text_parts.append(cleaned)
 
     @property

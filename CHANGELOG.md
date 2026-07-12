@@ -4,6 +4,19 @@
 
 ### Added
 
+- Round three: the agentic-checkout trust layer, researched against the
+  UCP spec (ucp.dev, Google/Shopify-led), OpenAI's ACP checkout schema,
+  and Microsoft's MMC UCP-readiness docs. Four new page rules:
+  GEO-POLICY-001 (privacy-policy and terms links — required for ACP
+  checkout eligibility and MMC store approval), GEO-RETURNS-002
+  (hasMerchantReturnPolicy must be complete: applicableCountry +
+  returnPolicyCategory or merchantReturnLink), GEO-SHIPPING-002
+  (shippingDetails must carry shippingRate/shippingDestination/
+  deliveryTime), and GEO-SELLER-001 (machine-readable seller identity).
+  The page parser now extracts links; docs/RULES.md gains an
+  "agentic checkout layer" section covering UCP, ACP checkout, and the
+  verified absence of product-data requirements in AP2. The good demo
+  fixture gains footer policy links.
 - Nine more agent-requirement rules, all offline and deterministic:
   GEO-GTIN-001 (GS1 length + check-digit validation; an incorrect GTIN is
   a documented disapproval cause), GEO-CURRENCY-001 (ISO 4217),

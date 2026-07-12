@@ -138,6 +138,41 @@ the load-bearing facts, with primary sources:
   ("DeepseekBot/1.0") are unconfirmed. CatalogReady therefore ships no
   DeepSeek-specific rule: there is nothing documented to check against.
 
+### The agentic checkout layer (UCP · ACP checkout · AP2)
+
+Verified July 2026 — the protocols that let agents *transact*, not just read:
+
+- **UCP (Universal Commerce Protocol)** is a cross-industry open standard
+  co-developed by Google and Shopify (participants include Etsy, Target,
+  Walmart, Amazon, Microsoft, Meta, Stripe; Apache-2.0, spec at
+  [ucp.dev](https://ucp.dev/)). Google gates AI-Mode Buy buttons on the
+  `native_commerce` feed attribute and requires a Merchant Center return
+  policy and customer-support contact
+  ([Google UCP guide](https://developers.google.com/merchant/ucp/guides/merchant-center),
+  [Merchant Center help](https://support.google.com/merchants/answer/16837055));
+  Microsoft's MMC adds `return_policy_labels` and
+  `consumer_message_type/content` (legal/safety/Prop-65 warnings shown
+  before purchase) as "UCP readiness" fields
+  ([MMC product attributes](https://help.ads.microsoft.com/apex/index/3/en/51084)).
+- **OpenAI ACP checkout**: `return_policy` (URL) is required
+  unconditionally; `seller_name`/`seller_url` are required; and
+  `seller_privacy_policy` + `seller_tos` become **required when a product
+  is checkout-eligible**. OpenAI's production checklist verifies "Terms of
+  Service and Privacy Policy links are present and functional"
+  ([ACP product schema](https://developers.openai.com/commerce/specs/file-upload/products),
+  [production guide](https://developers.openai.com/commerce/guides/production)).
+  Microsoft's MMC store review likewise rejects sites for "lack of a
+  'real' privacy policy" and non-SSL checkout
+  ([MMC store setup](https://help.ads.microsoft.com/apex/index/3/en/60048)).
+- **AP2 (Agent Payments Protocol)** — Google-led payment-mandate layer with
+  60+ partners — imposes **no product-data or product-page requirements**
+  (verified absence; [ap2-protocol.org](https://ap2-protocol.org/)). No
+  CatalogReady rule derives from it.
+
+The feed-only attributes (`native_commerce`, `consumer_message_*`,
+`return_policy_labels`) are documented here for merchants but are not page
+rules — CatalogReady audits their page-level counterparts below.
+
 ---
 
 ## Implemented rules
@@ -182,6 +217,10 @@ the load-bearing facts, with primary sources:
 | GEO-OFFER-004 | medium | `priceValidUntil` is not in the past | Platform-derived: recommended Offer property at Google; an expired date signals stale price data ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)) |
 | GEO-PRODUCT-004 | medium | at most one ungrouped Product-with-offer per page (variants must use `isVariantOf`/`inProductGroupWithID`) | Platform-derived: Bing's "focus each URL on a single topic" entity-clarity guidance; Google merchant-listing variant properties |
 | GEO-CONDITION-001 | medium | pages mentioning "refurbished"/"pre-owned"/"open box" declare `itemCondition` | Platform-derived: GMC requires `condition` for used/refurbished products ([GMC spec](https://support.google.com/merchants/answer/7052112)) |
+| GEO-RETURNS-002 | medium | `hasMerchantReturnPolicy`, when present, is complete: `applicableCountry` + `returnPolicyCategory`, or a `merchantReturnLink` | Standard: Google's documented MerchantReturnPolicy requirement options ([return-policy markup](https://developers.google.com/search/docs/appearance/structured-data/return-policy)) |
+| GEO-SHIPPING-002 | low | `shippingDetails`, when present, carries at least one of `shippingRate`/`shippingDestination`/`deliveryTime` | Platform-derived: documented OfferShippingDetails sub-properties ([merchant listing](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing)) |
+| GEO-SELLER-001 | low | someone machine-readable sells the product: `brand`, `offers.seller`, or an `Organization` node | Platform-derived: OpenAI ACP requires `seller_name`/`seller_url` on every product ([ACP schema](https://developers.openai.com/commerce/specs/file-upload/products)) |
+| GEO-POLICY-001 | medium | the page links a privacy policy and terms of service | Platform-derived: ACP requires `seller_privacy_policy`/`seller_tos` for checkout eligibility and verifies the links pre-launch; MMC rejects stores lacking "a 'real' privacy policy" ([ACP schema](https://developers.openai.com/commerce/specs/file-upload/products), [MMC store setup](https://help.ads.microsoft.com/apex/index/3/en/60048)) |
 | GEO-EVIDENCE-001 | medium | ≥120 words of visible text | CatalogReady convention, aligned with Bing's "keep facts explicit and independently verifiable" content guidance |
 | GEO-EVIDENCE-002 | low | shopper-evidence topics present (specs, limitations, shipping, returns) | Platform-derived: return policy is a required ACP feed field (OpenAI); shipping/returns are Perplexity Merchant Program product data ([terms](https://www.perplexity.ai/hub/legal/merchant-program-terms-of-service)) |
 

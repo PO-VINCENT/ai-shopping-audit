@@ -222,6 +222,66 @@ def audit_product_structured_data(
             )
         )
 
+    return_policies = [
+        policy
+        for node in [*products, *offers]
+        for policy in (
+            node.get("hasMerchantReturnPolicy")
+            if isinstance(node.get("hasMerchantReturnPolicy"), list)
+            else [node.get("hasMerchantReturnPolicy")]
+        )
+        if isinstance(policy, dict)
+    ]
+    if return_policies and not any(
+        (policy.get("applicableCountry") and policy.get("returnPolicyCategory"))
+        or policy.get("merchantReturnLink")
+        for policy in return_policies
+    ):
+        findings.append(
+            finding(
+                "GEO-RETURNS-002",
+                "medium",
+                "Return-policy markup is incomplete",
+                "hasMerchantReturnPolicy declares neither applicableCountry + returnPolicyCategory nor merchantReturnLink.",
+                "Complete the MerchantReturnPolicy: applicableCountry + returnPolicyCategory (add merchantReturnDays for finite windows) or a merchantReturnLink URL.",
+            )
+        )
+
+    shipping_nodes = [
+        node.get("shippingDetails")
+        for node in offers
+        if isinstance(node.get("shippingDetails"), dict)
+    ]
+    if shipping_nodes and not any(
+        node.get("shippingRate") or node.get("shippingDestination") or node.get("deliveryTime")
+        for node in shipping_nodes
+    ):
+        findings.append(
+            finding(
+                "GEO-SHIPPING-002",
+                "low",
+                "shippingDetails markup carries no shipping facts",
+                "OfferShippingDetails declares none of shippingRate, shippingDestination, or deliveryTime.",
+                "Populate shippingRate, shippingDestination, and deliveryTime so agents can quote delivery.",
+            )
+        )
+
+    has_seller_identity = (
+        any(offer.get("seller") for offer in offers)
+        or any(_has_type(node, "Organization") for node in nodes)
+        or any(product.get("brand") for product in products)
+    )
+    if products and offers and not has_seller_identity:
+        findings.append(
+            finding(
+                "GEO-SELLER-001",
+                "low",
+                "No machine-readable seller identity",
+                "Neither brand, offers.seller, nor an Organization node identifies who sells this product.",
+                "Add offers.seller or Organization markup; agentic feeds require seller name and URL.",
+            )
+        )
+
     offered_products = [
         product for product in products
         if product.get("offers") and not product.get("isVariantOf") and not product.get("inProductGroupWithID")
