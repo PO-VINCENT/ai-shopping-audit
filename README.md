@@ -61,8 +61,40 @@ rubric and caps.
 
 ## Quick start with ChatGPT, Claude, Gemini, or DeepSeek
 
-CatalogReady ships an MCP server, so the AI assistant you already use can
-audit product pages as a tool. Then just ask it: *"Fetch
+### Option 1 — paste into any chatbox (no setup)
+
+Works in the ChatGPT, Claude, Gemini, or DeepSeek app you already have
+open. Two steps:
+
+**1.** Audit your page (one command, needs [uv](https://docs.astral.sh/uv/)):
+
+```bash
+uvx --from catalogready-ai catalogready audit https://your-store.com/products/example --json > audit.json
+```
+
+**2.** Paste this prompt into the chatbox, then paste the contents of
+`audit.json` under it:
+
+> I ran CatalogReady (github.com/PO-VINCENT/ai-shopping-audit), an
+> open-source auditor that scores product pages 0–100 for AI-shopping
+> readiness using deterministic rules. Below is the JSON result for my
+> product page. Act as my e-commerce consultant:
+> 1. Explain the score, the pillar breakdown, and any caps in plain language.
+> 2. Prioritize the findings into a fix list, most damaging first.
+> 3. Show me the corrected Product JSON-LD using ONLY facts present in
+>    this JSON — do not invent product data.
+> 4. Tell me which merchant questions I must answer and why they matter.
+>
+> Here is the audit JSON:
+
+The score and findings come from the deterministic tool; the chatbot
+explains and plans. It works the same in all four apps because it's just
+text — no plugin, no account linking, no key.
+
+### Option 2 — connect as a tool (MCP)
+
+If you use an agentic assistant, CatalogReady ships an MCP server, so it
+can audit pages itself. Then just ask it: *"Fetch
 https://store.example/products/x and run the CatalogReady agent on the
 HTML — summarize the score and the top fixes."*
 
