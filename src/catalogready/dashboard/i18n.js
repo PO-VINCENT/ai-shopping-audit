@@ -72,6 +72,8 @@ const I18N = {
     demoGoodLoaded: "Good demo loaded. Press Audit page.",
     demoBadLoaded: "Bad demo loaded. Press Audit page.",
     scoreLine: (score, status) => `${score}/100, ${status}`,
+    sourceFetched: "Audited: fetched HTML — the view non-rendering AI crawlers get. Rendered-page scores (extension) may differ; the gap measures JavaScript dependence.",
+    sourcePasted: "Audited: supplied HTML.",
     verdictReady:
       "This page is ready for AI shopping agents — its product data is machine-readable and evidence-backed.",
     verdictPartial:
@@ -232,6 +234,8 @@ const I18N = {
     demoGoodLoaded: "已加载优秀示例，点击「审计页面」。",
     demoBadLoaded: "已加载问题示例，点击「审计页面」。",
     scoreLine: (score, status) => `${score}/100，${status === "ready" ? "就绪" : "待改进"}`,
+    sourceFetched: "审计对象：抓取的静态 HTML——即不执行 JS 的 AI 爬虫所见。浏览器扩展基于渲染后页面，分数可能不同；差值反映页面对 JavaScript 的依赖程度。",
+    sourcePasted: "审计对象：提供的 HTML。",
     verdictReady: "该页面已为 AI 购物助手就绪——商品数据机器可读且有证据支撑。",
     verdictPartial: "该页面对 AI 购物助手只部分可读；下列缺口会降低其可信引用程度。",
     verdictPoor: "当前状态下，该页面对 AI 购物助手基本不可见或不可信。",

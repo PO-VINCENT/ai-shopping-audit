@@ -303,6 +303,15 @@ explanations, inline merchant questions, a paste-ready JSON-LD patch, an
 your browser language (English / 中文, switchable in the header). Everything
 runs locally; the page never asks for API keys.
 
+**Why the extension and the URL fetch can score differently:** the
+extension audits the *rendered* page (what a browsing agent sees); the
+URL fetch audits the *static* HTML (what non-rendering crawlers like
+OAI-SearchBot and PerplexityBot receive). Both views are labeled in the
+UI, and the gap between them measures your page's JavaScript dependence —
+content that only exists after rendering is invisible to most AI
+crawlers, which is why Google recommends putting Product data in the
+initial HTML.
+
 ## How it compares
 
 | | CatalogReady | Google Rich Results Test | Generic SEO crawlers | AI copy generators |

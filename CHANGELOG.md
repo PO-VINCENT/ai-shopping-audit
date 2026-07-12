@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- The audited HTML source is now labeled in both UIs: the dashboard
+  marks fetched-vs-supplied HTML and the extension marks the rendered
+  page, with a note that the score gap between the two views measures
+  JavaScript dependence (rendered-only content is invisible to
+  non-rendering AI crawlers). Localized EN/中文.
+
 ### Changed
 
 - **GEO rules weigh more in the final score.** Findings from the GEO-*

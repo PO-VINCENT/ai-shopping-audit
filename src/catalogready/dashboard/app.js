@@ -66,7 +66,7 @@ const DEMO_BAD_HTML = `<!doctype html>
 </html>`;
 
 const el = (id) => document.getElementById(id);
-const state = { result: null, draft: null, answers: {}, grouping: "severity", metricFilter: null };
+const state = { result: null, draft: null, answers: {}, grouping: "severity", metricFilter: null, htmlSource: "pasted" };
 
 /* ---------- helpers ---------- */
 
@@ -118,6 +118,7 @@ async function fetchHtml() {
   try {
     const payload = await api("/v1/fetch", { url });
     el("html").value = payload.html;
+    state.htmlSource = "fetched";
     if (/pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i.test(payload.html)) {
       setStatus(i18n.t("statusBotWall"), true);
       return true; // still auditable — it shows what a generic crawler would see
@@ -470,6 +471,7 @@ function render(result) {
   const product = (result.evidence_record || {}).product || {};
   el("product-title").textContent = product.title || "Product page";
   el("product-url").textContent = (result.input || {}).url || "";
+  el("html-source").textContent = i18n.t(state.htmlSource === "fetched" ? "sourceFetched" : "sourcePasted");
   renderDial(readiness.score || 0);
   renderPillars(readiness.components || {});
   renderCaps(readiness);
@@ -616,6 +618,10 @@ el("demo-bad").addEventListener("click", () => {
 });
 
 el("fetch").addEventListener("click", fetchHtml);
+
+el("html").addEventListener("input", () => {
+  state.htmlSource = "pasted";
+});
 
 el("url").addEventListener("input", () => {
   // A new URL means the pasted/fetched HTML no longer matches it.
