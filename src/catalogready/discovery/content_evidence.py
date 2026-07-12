@@ -18,10 +18,13 @@ class PageSignals(HTMLParser):
         self.canonical: str | None = None
         self.robots: str = ""
         self.description: str = ""
+        self.lang: str = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = {key.lower(): value or "" for key, value in attrs}
         lowered = tag.lower()
+        if lowered == "html":
+            self.lang = values.get("lang", "").strip()
         if lowered == "title":
             self.in_title = True
         elif lowered in {"style", "noscript"}:

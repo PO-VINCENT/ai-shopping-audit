@@ -227,6 +227,71 @@ def audit_page_quality(
             )
         )
 
+    # GEO-CONDITION-001 — non-new products must declare itemCondition.
+    condition_terms = re.findall(
+        r"\b(refurbished|pre-owned|preowned|open box|open-box|second-hand|secondhand)\b",
+        lowered,
+    )
+    if products and condition_terms:
+        has_condition = any(
+            offer.get("itemCondition") for offer in offers
+        ) or any(product.get("itemCondition") for product in products)
+        if not has_condition:
+            findings.append(
+                finding(
+                    "GEO-CONDITION-001",
+                    "medium",
+                    "Non-new product lacks itemCondition markup",
+                    f"The page mentions “{condition_terms[0]}” but no offer declares itemCondition.",
+                    "Declare itemCondition (RefurbishedCondition/UsedCondition); feeds require condition for non-new products.",
+                )
+            )
+
+    # SEO-DESC-001 — meta description feeds snippets and agent summaries.
+    if products and not signals.description:
+        findings.append(
+            finding(
+                "SEO-DESC-001",
+                "low",
+                "Meta description is missing",
+                "No meta description was found in the supplied HTML.",
+                "Add an accurate meta description; missing descriptions reduce snippet and grounding reliability.",
+            )
+        )
+
+    # SEO-LANG-001 — language declaration helps agents parse and route the page.
+    if products and not signals.lang:
+        findings.append(
+            finding(
+                "SEO-LANG-001",
+                "low",
+                "The html element declares no lang attribute",
+                "No lang attribute was found on the html element.",
+                'Declare the page language (e.g. <html lang="en">) so agents parse and localize correctly.',
+            )
+        )
+
+    # SEO-HTTPS-001 — agents and checkout flows expect secure URLs.
+    insecure = []
+    if (signals.canonical or "").startswith("http://"):
+        insecure.append(f"canonical: {signals.canonical}")
+    insecure.extend(
+        f"image: {url}"
+        for product in products
+        for url in _image_urls(product)
+        if url.startswith("http://")
+    )
+    if insecure:
+        findings.append(
+            finding(
+                "SEO-HTTPS-001",
+                "medium",
+                "Product URLs are not HTTPS",
+                f"Insecure URL(s): {'; '.join(insecure[:3])}.",
+                "Serve canonical and image URLs over HTTPS; agents and checkout flows treat http:// as untrusted.",
+            )
+        )
+
     # CLAIM-INJECTION-001 — text aimed at manipulating AI agents.
     injected = [
         pattern

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Nine more agent-requirement rules, all offline and deterministic:
+  GEO-GTIN-001 (GS1 length + check-digit validation; an incorrect GTIN is
+  a documented disapproval cause), GEO-CURRENCY-001 (ISO 4217),
+  GEO-AVAILABILITY-002 (schema.org ItemAvailability vocabulary, no free
+  text), GEO-OFFER-004 (expired priceValidUntil), GEO-PRODUCT-004
+  (multiple ungrouped Product offers on one page), GEO-CONDITION-001
+  (refurbished/pre-owned pages must declare itemCondition), SEO-DESC-001
+  (meta description), SEO-LANG-001 (html lang), and SEO-HTTPS-001
+  (canonical/image URLs must be HTTPS). Documented with sources in
+  docs/RULES.md; demo fixture scores unchanged.
+
 ## 0.6.0 — 2026-07-11
 
 ### Added

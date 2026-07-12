@@ -3,10 +3,30 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable
+from datetime import date
 from typing import Any
 
+from catalogready.catalog.identifiers import is_valid_gtin
 from catalogready.catalog.schemas import Finding, finding
+
+# ISO 4217 active codes commonly seen in commerce feeds.
+_ISO_4217 = {
+    "AED", "ARS", "AUD", "BGN", "BHD", "BRL", "CAD", "CHF", "CLP", "CNY",
+    "COP", "CZK", "DKK", "EGP", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS",
+    "INR", "JPY", "KRW", "KWD", "MAD", "MXN", "MYR", "NGN", "NOK", "NZD",
+    "PEN", "PHP", "PKR", "PLN", "QAR", "RON", "RSD", "SAR", "SEK", "SGD",
+    "THB", "TRY", "TWD", "UAH", "USD", "VND", "ZAR",
+}
+
+_AVAILABILITY_VOCAB = {
+    "instock", "outofstock", "preorder", "presale", "backorder",
+    "discontinued", "limitedavailability", "instoreonly", "onlineonly",
+    "soldout", "madetoorder", "reserved",
+}
+
+_GTIN_KEYS = ("gtin", "gtin8", "gtin12", "gtin13", "gtin14")
 
 
 def _nodes(value: Any) -> Iterable[dict[str, Any]]:
@@ -124,6 +144,97 @@ def audit_product_structured_data(
                 "Offer price is not greater than zero",
                 f"The highest machine-readable offer price is {max(priced)}.",
                 "Publish the real, current price; merchant listings require a price greater than zero.",
+            )
+        )
+
+    bad_gtins = [
+        str(product[key]).strip()
+        for product in products
+        for key in _GTIN_KEYS
+        if product.get(key) and not is_valid_gtin(str(product[key]))
+    ]
+    if bad_gtins:
+        findings.append(
+            finding(
+                "GEO-GTIN-001",
+                "high",
+                "GTIN fails GS1 validation",
+                f"Invalid GTIN value(s): {', '.join(bad_gtins[:3])} (length or check digit).",
+                "Publish the manufacturer-assigned GTIN exactly; an incorrect GTIN is a documented disapproval cause.",
+            )
+        )
+
+    bad_currencies = sorted({
+        str(offer.get("priceCurrency")).strip()
+        for offer in offers
+        if offer.get("priceCurrency")
+        and str(offer.get("priceCurrency")).strip().upper() not in _ISO_4217
+    })
+    if bad_currencies:
+        findings.append(
+            finding(
+                "GEO-CURRENCY-001",
+                "medium",
+                "priceCurrency is not a recognized ISO 4217 code",
+                f"Unrecognized currency value(s): {', '.join(bad_currencies[:3])}.",
+                "Use a three-letter ISO 4217 code (USD, EUR, AUD, …); agents cannot quote an offer without one.",
+            )
+        )
+
+    bad_availability = sorted({
+        str(offer.get("availability")).strip()
+        for offer in offers
+        if offer.get("availability")
+        and re.sub(r"[^a-z]", "", str(offer.get("availability")).rsplit("/", 1)[-1].lower())
+        not in _AVAILABILITY_VOCAB
+    })
+    if bad_availability:
+        findings.append(
+            finding(
+                "GEO-AVAILABILITY-002",
+                "medium",
+                "availability is not a schema.org ItemAvailability value",
+                f"Unrecognized availability value(s): {', '.join(bad_availability[:3])}.",
+                "Use a schema.org value such as https://schema.org/InStock; free-text availability is not machine-readable.",
+            )
+        )
+
+    expired = []
+    for offer in offers:
+        raw = str(offer.get("priceValidUntil") or "").strip()
+        match = re.match(r"(\d{4})-(\d{2})-(\d{2})", raw)
+        if not match:
+            continue
+        try:
+            valid_until = date(int(match.group(1)), int(match.group(2)), int(match.group(3)))
+        except ValueError:
+            continue
+        if valid_until < date.today():
+            expired.append(raw)
+    if expired:
+        findings.append(
+            finding(
+                "GEO-OFFER-004",
+                "medium",
+                "Offer priceValidUntil is in the past",
+                f"priceValidUntil {', '.join(expired[:3])} has expired.",
+                "Update or remove priceValidUntil; an expired offer date signals stale price data to agents.",
+            )
+        )
+
+    offered_products = [
+        product for product in products
+        if product.get("offers") and not product.get("isVariantOf") and not product.get("inProductGroupWithID")
+    ]
+    if len(offered_products) > 1:
+        names = [str(product.get("name", ""))[:40] for product in offered_products[:3]]
+        findings.append(
+            finding(
+                "GEO-PRODUCT-004",
+                "medium",
+                "Multiple ungrouped Product offers on one page",
+                f"{len(offered_products)} Product nodes carry offers without variant grouping (e.g. {', '.join(names)}).",
+                "Keep one primary Product per page, or link variants with isVariantOf/inProductGroupWithID.",
             )
         )
 
