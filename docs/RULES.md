@@ -17,7 +17,9 @@ with the rule.
 
 All platform citations below were verified against the linked primary
 sources in July 2026. Propose new rules with the **rule proposal** issue
-template.
+template. For a cross-cutting view — which quality metric each rule
+measures, and how this score compares to Lighthouse, Core Web Vitals,
+GS1, and GEO/AEO visibility tools — see [METRICS.md](METRICS.md).
 
 ---
 

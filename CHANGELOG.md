@@ -4,6 +4,12 @@
 
 ### Added
 
+- `docs/METRICS.md`: the rules categorized into eight measurement
+  metrics (machine readability, validity, completeness, consistency,
+  trust & claim integrity, agent accessibility, transactability,
+  freshness) plus a landscape comparison against Lighthouse, Core Web
+  Vitals, security graders, SEO health scores, GMC/GS1/PIM data-quality
+  systems, and GEO/AEO visibility tools.
 - The extension (v0.6.1) and dashboard run the bounded image-size check
   automatically after every audit via the new `/v1/online-checks` route
   (adapter-level, max 3 fetches by the local server). Findings are
