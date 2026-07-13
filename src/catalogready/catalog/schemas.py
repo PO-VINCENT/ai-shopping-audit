@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal, TypedDict
 
 from .metrics import metric_for
+from .platforms import platforms_for
 
 Severity = Literal["low", "medium", "high"]
 ScoreStatus = Literal["measured", "not_run", "unavailable"]
@@ -18,6 +19,7 @@ class Finding(TypedDict):
     recommendation: str
     source: str
     metric: str
+    platforms: list[str]
 
 
 class ScoreSection(TypedDict):
@@ -42,6 +44,7 @@ def finding(
         "recommendation": recommendation,
         "source": source,
         "metric": metric_for(rule_id),
+        "platforms": list(platforms_for(rule_id)),
     }
 
 
@@ -88,4 +91,3 @@ def result(
         "summary": summary,
         "findings": findings,
     }
-

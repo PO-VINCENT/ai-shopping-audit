@@ -6,6 +6,12 @@ qualities — the diagnostic lens a data-quality engineer would use. This
 page maps every rule family to its metric and places the score in the
 landscape of comparable systems.
 
+In page-agent results, these metrics are reorganized beneath six score views:
+a comprehensive view plus OpenAI, Google, Microsoft, Anthropic, and Perplexity.
+Each platform view lists the relevant finding count and deductions for every
+metric. The numeric platform score uses the canonical readiness arithmetic;
+the metric rows remain an explanation of that score, not separate composites.
+
 ## The eight metrics
 
 | Metric | Question it answers | Rules |

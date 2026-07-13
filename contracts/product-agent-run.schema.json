@@ -40,7 +40,25 @@
     },
     "readiness": {
       "type": "object",
-      "required": ["before", "validated_after"]
+      "required": ["before", "validated_after"],
+      "properties": {
+        "before": {
+          "type": "object",
+          "required": ["score", "platform_scores"],
+          "properties": {
+            "score": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "platform_scores": {
+              "type": "object",
+              "required": ["comprehensive", "openai", "google", "microsoft", "anthropic", "perplexity"],
+              "additionalProperties": {
+                "type": "object",
+                "required": ["label", "surfaces", "score", "status", "raw_score", "deductions", "deduction_items", "safety_cap", "cap_reasons", "metrics"]
+              }
+            }
+          }
+        },
+        "validated_after": { "type": ["object", "null"] }
+      }
     },
     "findings": { "type": "array" },
     "plan": { "type": "array", "maxItems": 5 },

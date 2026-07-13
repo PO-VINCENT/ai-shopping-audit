@@ -67,6 +67,16 @@ def render_score_card(
             use_color,
         )
         lines.append(f"  {label:<20} {value}")
+    if readiness.get("platform_scores"):
+        lines.extend(["", "  Platform views"])
+        for section in readiness["platform_scores"].values():
+            platform_score = int(section.get("score") or 0)
+            value = _paint(
+                f"{platform_score:>3}/100",
+                _score_code(platform_score / 100),
+                use_color,
+            )
+            lines.append(f"  {str(section.get('label', 'Platform')):<20} {value}")
     if readiness.get("deductions"):
         lines.append(
             "  " + _paint(

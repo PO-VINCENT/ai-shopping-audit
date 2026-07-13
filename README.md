@@ -9,6 +9,14 @@ paste-ready fixes.
 
 **Offline · deterministic rules · no API key · never writes to your store.**
 
+## See it in action
+
+Audit a live product page from the CatalogReady browser extension, compare the
+platform-specific readiness scores, inspect every deduction, and generate
+evidence-backed fixes without writing to the storefront.
+
+![CatalogReady auditing a live retail product page](docs/assets/catalogready-showcase.gif)
+
 ```bash
 uvx --from catalogready-ai catalogready https://your-store.com/products/example
 ```

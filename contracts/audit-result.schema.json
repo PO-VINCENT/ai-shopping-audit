@@ -39,10 +39,15 @@
               "trust", "accessibility", "transactability", "freshness"
             ],
             "description": "Diagnostic measurement category (docs/METRICS.md); status, never a second score."
+          },
+          "platforms": {
+            "type": "array",
+            "items": { "enum": ["openai", "google", "microsoft", "anthropic", "perplexity"] },
+            "uniqueItems": true,
+            "description": "Platforms whose documented requirements make this finding relevant."
           }
         }
       }
     }
   }
 }
-

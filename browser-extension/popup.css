@@ -17,6 +17,7 @@ body {
   padding: .8rem .9rem; background: var(--bg); color: var(--fg);
   font: 13px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+main, details, #jsonld-wrap { min-width: 0; max-width: 100%; }
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
 .brand { display: flex; align-items: center; gap: .45rem; }
 .mark {
@@ -103,10 +104,10 @@ details > summary { cursor: pointer; font-weight: 600; font-size: .8rem; }
 .question .why { color: var(--muted); font-size: .7rem; }
 .blocking-tag { color: var(--bad); font-weight: 700; font-size: .62rem; text-transform: uppercase; margin-right: .3rem; }
 
-.change { border: 1px solid var(--border); border-radius: 7px; padding: .4rem .6rem; margin: .35rem 0; background: var(--panel); font-size: .75rem; }
-.delta { margin-top: .45rem; padding: .45rem .6rem; border-radius: 7px; background: var(--panel); border-left: 3px solid var(--good); font-size: .77rem; }
-.row-between { display: flex; justify-content: space-between; align-items: center; margin-top: .4rem; }
-pre { background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: .5rem; overflow-x: auto; font-size: .64rem; max-height: 160px; }
+.change { border: 1px solid var(--border); border-radius: 7px; padding: .4rem .6rem; margin: .35rem 0; background: var(--panel); font-size: .75rem; overflow-wrap: anywhere; }
+.delta { margin-top: .45rem; padding: .45rem .6rem; border-radius: 7px; background: var(--panel); border-left: 3px solid var(--good); font-size: .77rem; overflow-wrap: anywhere; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+pre { background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: .5rem; overflow-x: auto; font-size: .64rem; max-height: 160px; width: 100%; max-width: 100%; }
 
 .ask-row { display: flex; gap: .4rem; margin-top: .6rem; }
 .ask-row input { flex: 1; margin-top: 0; }
@@ -142,3 +143,27 @@ footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: 
 }
 .view-btn.is-active { background: var(--accent); color: #fff; }
 #view-note { margin-top: .35rem; }
+
+.score-breakdown {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 9px;
+  padding: .55rem .65rem; margin-top: .55rem; min-width: 0;
+}
+.score-breakdown-head { display: flex; justify-content: space-between; gap: .5rem; }
+.score-equation { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; margin: .4rem 0 .25rem; font-size: .74rem; }
+.score-equation span { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: .2rem .35rem; }
+.score-equation strong { color: var(--accent); font-size: .85rem; }
+.cap-equation { color: var(--bad); font-size: .68rem; font-weight: 600; }
+.deduction-title, .platform-title { color: var(--muted); font-size: .64rem; text-transform: uppercase; letter-spacing: .035em; margin-top: .45rem; }
+.deduction-list { list-style: none; margin: .2rem 0 0; padding: 0; }
+.deduction-list li { display: flex; justify-content: space-between; align-items: flex-start; gap: .45rem; border-top: 1px solid var(--border); padding: .3rem 0; font-size: .68rem; overflow-wrap: anywhere; }
+.deduction-list li > strong { color: var(--bad); white-space: nowrap; }
+.deduction-list .chip { margin-left: 0; margin-right: .2rem; }
+.deduction-meta { color: var(--muted); font-size: .62rem; }
+.deduction-list .no-deduction { color: var(--good); }
+.platform-scores { display: grid; grid-template-columns: 1fr 1fr; gap: .3rem; margin-top: .55rem; }
+.platform-title { grid-column: 1 / -1; margin-top: 0; }
+.platform-card { display: flex; justify-content: space-between; gap: .35rem; min-width: 0; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); padding: .35rem .45rem; font-size: .68rem; }
+.platform-card.comprehensive { grid-column: 1 / -1; border-color: var(--accent); }
+.platform-card > span { min-width: 0; }
+.platform-card small { display: block; color: var(--muted); font-size: .58rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.platform-card > strong { white-space: nowrap; }

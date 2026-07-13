@@ -226,6 +226,50 @@ function renderPillars(components) {
     .join("");
 }
 
+function renderScoreBreakdown(readiness) {
+  const comprehensive = (readiness.platform_scores || {}).comprehensive || readiness;
+  const raw = Number(comprehensive.raw_score || 0);
+  const deductions = Number(comprehensive.deductions || 0);
+  const beforeCap = Math.max(1, raw - deductions);
+  const score = Number(comprehensive.score || readiness.score || 0);
+  const cap = Number(comprehensive.safety_cap || 100);
+  const items = comprehensive.deduction_items || [];
+  const rows = items.length
+    ? items.map((item) =>
+        `<li><span><span class="chip">${escapeHtml(item.rule_id)}</span> ` +
+        `${escapeHtml(item.title)} <span class="deduction-meta">${escapeHtml(item.severity)} · ` +
+        `${escapeHtml(i18n.metricLabel(item.metric || ""))}</span></span>` +
+        `<strong>−${Number(item.points || 0)}</strong></li>`
+      ).join("")
+    : `<li class="no-deduction">${escapeHtml(i18n.t("noDeductions"))}</li>`;
+  const capLine = cap < beforeCap
+    ? `<div class="cap-equation">${escapeHtml(i18n.t("scoreBeforeCap", beforeCap))} → ` +
+      `${escapeHtml(i18n.t("scoreCapApplied", cap, score))}</div>`
+    : "";
+  $("score-breakdown").innerHTML =
+    `<div class="score-breakdown-head"><strong>${escapeHtml(i18n.t("scoreBreakdownTitle"))}</strong>` +
+    `<strong>${score}/100</strong></div>` +
+    `<div class="score-equation"><span>${escapeHtml(i18n.t("checkPoints", raw))}</span>` +
+    `<b>−</b><span>${escapeHtml(i18n.t("deductionPoints", deductions))}</span>` +
+    `<b>=</b><strong>${beforeCap}</strong></div>${capLine}` +
+    `<div class="deduction-title">${escapeHtml(i18n.t("deductionListTitle"))}</div>` +
+    `<ul class="deduction-list">${rows}</ul>`;
+}
+
+function renderPlatformScores(readiness) {
+  const scores = readiness.platform_scores || {};
+  $("platform-scores").innerHTML = Object.keys(scores).length
+    ? `<div class="platform-title">${escapeHtml(i18n.t("platformScoresTitle"))}</div>` +
+      Object.entries(scores).map(([platform, section]) =>
+        `<div class="platform-card ${platform === "comprehensive" ? "comprehensive" : ""}">` +
+        `<span><strong>${escapeHtml(section.label || platform)}</strong>` +
+        `<small>${escapeHtml((section.surfaces || []).join(" · "))}</small></span>` +
+        `<strong style="color:${scoreColor(Number(section.score || 0) / 100)}">${section.score}/100</strong>` +
+        `</div>`
+      ).join("")
+    : "";
+}
+
 function renderSummary() {
   const active = activeResult();
   const readiness = (active.readiness || {}).before || {};
@@ -360,6 +404,8 @@ function render() {
   $("product-title").textContent = product.title || state.page.url;
   renderDial(readiness.score || 0);
   renderPillars(readiness.components || {});
+  renderScoreBreakdown(readiness);
+  renderPlatformScores(readiness);
   $("caps").innerHTML = (readiness.cap_reasons || []).length
     ? `<div class="cap"><strong>${escapeHtml(i18n.t("capBanner", readiness.safety_cap))}</strong> ` +
       readiness.cap_reasons.map(escapeHtml).join(" ") + `</div>`

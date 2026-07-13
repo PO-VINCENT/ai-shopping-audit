@@ -38,6 +38,8 @@ class ReportingTests(unittest.TestCase):
         self.assertIn("<!doctype html>", report)
         self.assertIn("Desk Lamp", report)
         self.assertIn("Claim grounding", report)
+        self.assertIn("Readiness by platform", report)
+        self.assertIn("ChatGPT shopping", report)
         self.assertIn("Recommended Product JSON-LD", report)
         # Self-contained: no external resources.
         self.assertNotIn("http-equiv=\"refresh\"", report)
@@ -62,4 +64,3 @@ class ReportingTests(unittest.TestCase):
         )
         self.assertIn("51/100", report)
         self.assertIn("CAT-IDENTITY-001", report)
-

@@ -261,6 +261,36 @@ function renderCaps(readiness) {
     : "";
 }
 
+function renderScoreBreakdown(readiness) {
+  const comprehensive = (readiness.platform_scores || {}).comprehensive || readiness;
+  const raw = Number(comprehensive.raw_score || 0);
+  const deductions = Number(comprehensive.deductions || 0);
+  const beforeCap = Math.max(1, raw - deductions);
+  const score = Number(comprehensive.score || readiness.score || 0);
+  const cap = Number(comprehensive.safety_cap || 100);
+  const items = comprehensive.deduction_items || [];
+  const rows = items.length
+    ? items.map((item) =>
+        `<li><span><span class="chip">${escapeHtml(item.rule_id)}</span> ` +
+        `${escapeHtml(item.title)} <span class="deduction-meta">${escapeHtml(item.severity)} · ` +
+        `${escapeHtml(i18n.metricInfo(item.metric || "").name)}</span></span>` +
+        `<strong>−${Number(item.points || 0)}</strong></li>`
+      ).join("")
+    : `<li class="no-deduction">${escapeHtml(i18n.t("noDeductions"))}</li>`;
+  const capLine = cap < beforeCap
+    ? `<div class="cap-equation">${escapeHtml(i18n.t("scoreBeforeCap", beforeCap))} ` +
+      `<span>→</span> ${escapeHtml(i18n.t("scoreCapApplied", cap, score))}</div>`
+    : "";
+  el("score-breakdown").innerHTML =
+    `<div class="score-breakdown-head"><strong>${escapeHtml(i18n.t("scoreBreakdownTitle"))}</strong>` +
+    `<strong>${score}/100</strong></div>` +
+    `<div class="score-equation"><span>${escapeHtml(i18n.t("checkPoints", raw))}</span>` +
+    `<b>−</b><span>${escapeHtml(i18n.t("deductionPoints", deductions))}</span>` +
+    `<b>=</b><strong>${beforeCap}</strong></div>${capLine}` +
+    `<div class="deduction-title">${escapeHtml(i18n.t("deductionListTitle"))}</div>` +
+    `<ul class="deduction-list">${rows}</ul>`;
+}
+
 function renderTrace(result) {
   el("trace").innerHTML = (result.trace || [])
     .map((event) => `<div><span class="dot">●</span>${escapeHtml(event.tool)} — ${escapeHtml(event.summary)}</div>`)
@@ -284,18 +314,25 @@ function metricStatuses(findings) {
   return status;
 }
 
-function renderMetricStrip(findings) {
-  const status = metricStatuses(findings);
-  el("metric-strip").innerHTML = METRIC_ORDER.map((key) => {
-    const info = i18n.metricInfo(key);
-    const entry = status[key];
-    const active = state.metricFilter === key ? " is-active" : "";
-    const count = entry.count ? `<span class="m-count">${entry.count}</span>` : "";
-    return (
-      `<button class="metric-tile ${entry.level}${active}" type="button" data-metric="${key}"` +
-      ` title="${escapeHtml(info.question)}">` +
-      `<span class="m-dot" aria-hidden="true"></span>${escapeHtml(info.name)}${count}</button>`
-    );
+function renderPlatformScores(readiness) {
+  const scores = readiness.platform_scores || {};
+  el("metric-strip").innerHTML = Object.entries(scores).map(([platform, section]) => {
+    const metrics = section.metrics || {};
+    const metricTiles = METRIC_ORDER.filter((key) => (metrics[key]?.findings || 0) > 0)
+      .map((key) => {
+        const info = i18n.metricInfo(key);
+        const active = state.metricFilter === key ? " is-active" : "";
+        return `<button class="metric-tile warn${active}" type="button" data-metric="${key}"` +
+          ` title="${escapeHtml(info.question)}">${escapeHtml(info.name)}` +
+          `<span class="m-count">${metrics[key].findings}</span></button>`;
+      }).join("");
+    const surfaces = (section.surfaces || []).join(" · ");
+    return `<section class="platform-card ${platform === "comprehensive" ? "comprehensive" : ""}">` +
+      `<div class="platform-head"><strong>${escapeHtml(section.label || platform)}</strong>` +
+      `<span style="color:${scoreColor((section.score || 0) / 100)}">${section.score}/100</span></div>` +
+      `<div class="platform-surfaces">${escapeHtml(surfaces)}</div>` +
+      `<div class="platform-metrics">${metricTiles || `<span class="metric-clear">${escapeHtml(i18n.t("platformClear"))}</span>`}</div>` +
+      `</section>`;
   }).join("");
 }
 
@@ -310,7 +347,6 @@ function findingCard(item) {
 }
 
 function renderFindings(findings) {
-  renderMetricStrip(findings);
   const order = { high: 0, medium: 1, low: 2 };
   let visible = [...findings].sort((a, b) => (order[a.severity] ?? 3) - (order[b.severity] ?? 3));
   if (state.metricFilter) {
@@ -474,6 +510,8 @@ function render(result) {
   el("html-source").textContent = i18n.t(state.htmlSource === "fetched" ? "sourceFetched" : "sourcePasted");
   renderDial(readiness.score || 0);
   renderPillars(readiness.components || {});
+  renderScoreBreakdown(readiness);
+  renderPlatformScores(readiness);
   renderCaps(readiness);
   renderTrace(result);
   renderFindings(result.findings || []);
@@ -582,6 +620,7 @@ el("metric-strip").addEventListener("click", (event) => {
   if (!tile || !state.result) return;
   state.metricFilter = state.metricFilter === tile.dataset.metric ? null : tile.dataset.metric;
   renderFindings(state.result.findings || []);
+  renderPlatformScores((state.result.readiness || {}).before || {});
 });
 
 document.querySelectorAll(".group-btn").forEach((button) => {

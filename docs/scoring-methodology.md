@@ -56,6 +56,32 @@ the score but fails the offer-markup checks in two pillars.
 
 Status is `ready` only when the score is at least 80 and no cap fired.
 
+### Platform-specific and comprehensive views
+
+Every page-readiness result also reports `platform_scores` in this fixed order:
+`comprehensive`, `openai`, `google`, `microsoft`, `anthropic`, and
+`perplexity`. The named views cover these surfaces:
+
+| View | Surfaces |
+|---|---|
+| OpenAI | ChatGPT search and ChatGPT shopping |
+| Google | Merchant listings, Google Shopping, AI Overviews, and AI Mode |
+| Microsoft | Bing search, Microsoft Shopping, and Copilot |
+| Anthropic | Claude |
+| Perplexity | Perplexity |
+
+All views start with the same evidence-only 100-point check total. A platform
+view deducts only findings mapped to that platform in `catalog/platforms.py`;
+the comprehensive view deducts every finding. Universal evidence gates still
+apply to every platform, while the missing-Product-structured-data cap applies
+to Google and Microsoft, the documented JSON-LD consumers. Each view groups its
+finding count and deductions under the eight diagnostic metrics. Those metric
+groups explain the platform score; they are not averaged into a second score.
+Each view also exposes `deduction_items`, an ordered ledger containing the rule
+ID, title, metric, severity, and exact points removed. Dashboard arithmetic is
+rendered from this ledger rather than reimplementing scoring weights in the
+browser.
+
 ## Catalog readiness
 
 Computed by `catalog/scoring.py`:

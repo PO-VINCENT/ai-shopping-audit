@@ -11,6 +11,7 @@ class ExtensionTests(unittest.TestCase):
     def test_manifest_is_mv3_with_minimal_permissions(self) -> None:
         manifest = json.loads((_EXTENSION_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["manifest_version"], 3)
+        self.assertEqual(manifest["version"], "0.8.0")
         self.assertEqual(set(manifest["permissions"]), {"activeTab", "scripting", "storage"})
         # Host permissions must stay local-only: the page HTML never leaves the machine.
         for host in manifest["host_permissions"]:
@@ -44,6 +45,16 @@ class ExtensionTests(unittest.TestCase):
         # Stored settings are limited to server URL, provider name, and model ID.
         self.assertIn('chrome.storage.local.set', content)
         self.assertNotIn("key:", lowered)
+
+    def test_popup_renders_latest_platform_and_deduction_contract(self) -> None:
+        script = (_EXTENSION_DIR / "popup.js").read_text(encoding="utf-8")
+        css = (_EXTENSION_DIR / "popup.css").read_text(encoding="utf-8")
+        html = (_EXTENSION_DIR / "popup.html").read_text(encoding="utf-8")
+        self.assertIn('id="score-breakdown"', html)
+        self.assertIn('id="platform-scores"', html)
+        self.assertIn("deduction_items", script)
+        self.assertIn("platform_scores", script)
+        self.assertIn("#jsonld-wrap { min-width: 0; max-width: 100%; }", css)
 
 
 if __name__ == "__main__":

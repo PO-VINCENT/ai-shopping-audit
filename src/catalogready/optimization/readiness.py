@@ -11,6 +11,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..catalog.metrics import METRICS, metric_for
+from ..catalog.platforms import (
+    PLATFORM_LABELS,
+    PLATFORM_SURFACES,
+    PLATFORMS,
+    platforms_for,
+)
+
 _CLAIM_DEDUCTIONS = {"high": 5, "medium": 3, "low": 1}
 
 # Every page/claim finding also deducts by severity, on top of the
@@ -31,6 +39,83 @@ def _deduction(item: dict[str, Any]) -> int:
         else _FINDING_DEDUCTIONS
     )
     return table.get(str(item.get("severity")), 1)
+
+
+def _metric_breakdown(findings: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Summarize the audited defects without inventing an independent metric score."""
+
+    breakdown: dict[str, dict[str, Any]] = {}
+    for metric in METRICS:
+        matching = [
+            item
+            for item in findings
+            if (item.get("metric") or metric_for(item.get("rule_id", ""))) == metric
+        ]
+        deductions = sum(_deduction(item) for item in matching)
+        breakdown[metric] = {
+            "status": "needs_work" if matching else "clear",
+            "findings": len(matching),
+            "deductions": deductions,
+        }
+    return breakdown
+
+
+def _platform_scores(
+    raw_score: int,
+    findings: list[dict[str, Any]],
+    cap_events: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Apply the canonical arithmetic to each platform's relevant rule subset."""
+
+    views: tuple[str, ...] = ("comprehensive", *PLATFORMS)
+    output: dict[str, dict[str, Any]] = {}
+    for platform in views:
+        if platform == "comprehensive":
+            relevant_findings = findings
+            relevant_caps = cap_events
+            label = "Comprehensive"
+            surfaces = tuple(
+                surface for name in PLATFORMS for surface in PLATFORM_SURFACES[name]
+            )
+        else:
+            relevant_findings = [
+                item
+                for item in findings
+                if platform in (item.get("platforms") or platforms_for(item.get("rule_id", "")))
+            ]
+            relevant_caps = [
+                event for event in cap_events if platform in event["platforms"]
+            ]
+            label = PLATFORM_LABELS[platform]
+            surfaces = PLATFORM_SURFACES[platform]
+        deductions = sum(_deduction(item) for item in relevant_findings)
+        cap = min((int(event["cap"]) for event in relevant_caps), default=100)
+        score = max(1, min(raw_score - deductions, cap))
+        output[platform] = {
+            "label": label,
+            "surfaces": list(surfaces),
+            "score": score,
+            "status": "ready" if score >= 80 and cap == 100 else "needs_work",
+            "raw_score": raw_score,
+            "deductions": deductions,
+            "deduction_items": [
+                {
+                    "rule_id": str(item.get("rule_id", "")),
+                    "title": str(item.get("title", "Finding")),
+                    "metric": str(
+                        item.get("metric") or metric_for(item.get("rule_id", ""))
+                    ),
+                    "severity": str(item.get("severity", "low")),
+                    "points": _deduction(item),
+                }
+                for item in relevant_findings
+            ],
+            "safety_cap": cap,
+            "cap_reasons": [str(event["reason"]) for event in relevant_caps],
+            "findings": len(relevant_findings),
+            "metrics": _metric_breakdown(relevant_findings),
+        }
+    return output
 
 PILLARS = (
     "product_identity",
@@ -145,36 +230,65 @@ def score_page_readiness(
         },
     }
 
-    cap = 100
-    cap_reasons: list[str] = []
+    cap_events: list[dict[str, Any]] = []
     if any(item.get("severity") == "high" for item in claim_findings):
-        cap = min(cap, 49)
-        cap_reasons.append("An unsupported high-risk claim was found in the listing copy.")
+        cap_events.append(
+            {
+                "cap": 49,
+                "reason": "An unsupported high-risk claim was found in the listing copy.",
+                "platforms": PLATFORMS,
+            }
+        )
     if not clean_of("CLAIM-INJECTION-001"):
-        cap = min(cap, 49)
-        cap_reasons.append("The page contains text aimed at manipulating AI agents.")
+        cap_events.append(
+            {
+                "cap": 49,
+                "reason": "The page contains text aimed at manipulating AI agents.",
+                "platforms": PLATFORMS,
+            }
+        )
     if not stable_id:
-        cap = min(cap, 59)
-        cap_reasons.append("A stable product identifier is missing.")
+        cap_events.append(
+            {
+                "cap": 59,
+                "reason": "A stable product identifier is missing.",
+                "platforms": PLATFORMS,
+            }
+        )
     if not (price.get("amount") and price.get("currency") and product.get("availability")):
-        cap = min(cap, 69)
-        cap_reasons.append("Price, currency, or availability evidence is incomplete.")
+        cap_events.append(
+            {
+                "cap": 69,
+                "reason": "Price, currency, or availability evidence is incomplete.",
+                "platforms": PLATFORMS,
+            }
+        )
     if not summary.get("products"):
-        cap = min(cap, 74)
-        cap_reasons.append("No Product structured data was found on the page.")
+        cap_events.append(
+            {
+                "cap": 74,
+                "reason": "No Product structured data was found on the page.",
+                "platforms": ("google", "microsoft"),
+            }
+        )
 
-    deductions = sum(_deduction(item) for item in [*page_findings, *claim_findings])
+    scored_findings = [*page_findings, *claim_findings]
+    platform_scores = _platform_scores(raw_score, scored_findings, cap_events)
+    comprehensive = platform_scores["comprehensive"]
+    deductions = comprehensive["deductions"]
+    cap = comprehensive["safety_cap"]
     # Floor at 1: the score is always positive; 1 reads as "essentially
     # nothing is agent-usable" without looking like a rendering bug.
-    score = max(1, min(raw_score - deductions, cap))
+    score = comprehensive["score"]
     return {
         "score": score,
         "raw_score": raw_score,
         "deductions": deductions,
-        "status": "ready" if score >= 80 and cap == 100 else "needs_work",
+        "status": comprehensive["status"],
         "components": components,
         "safety_cap": cap,
-        "cap_reasons": cap_reasons,
+        "cap_reasons": comprehensive["cap_reasons"],
+        "platform_scores": platform_scores,
         "observed_ai_visibility": {
             "status": "not_measured",
             "score": None,

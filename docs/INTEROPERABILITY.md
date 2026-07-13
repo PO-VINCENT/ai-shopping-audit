@@ -34,6 +34,15 @@ reference service is stateless: to resume a paused agent run, send the original
 supplied HTML again with verified `merchant_answers` and the earlier run ID in
 `resumed_from`. No adapter accepts provider API keys.
 
+As an additive 1.0-contract extension, every finding can include `platforms`,
+and page-agent readiness includes `platform_scores` for the comprehensive,
+OpenAI, Google, Microsoft, Anthropic, and Perplexity views. Consumers that only
+read the original headline `readiness.before.score` remain compatible. Platform
+scores describe deterministic readiness for the named surfaces; they do not
+claim observed ranking, citation, or traffic.
+The additive `deduction_items` array under each platform score makes every
+deduction traceable to its rule without changing the original headline fields.
+
 ## Codex
 
 Codex reads the repository-level `AGENTS.md`. Copy the MCP server block from
