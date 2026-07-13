@@ -12,6 +12,7 @@ class ExtensionTests(unittest.TestCase):
         manifest = json.loads((_EXTENSION_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["manifest_version"], 3)
         self.assertEqual(manifest["version"], "0.8.0")
+        self.assertLessEqual(len(manifest["description"]), 132)
         self.assertEqual(set(manifest["permissions"]), {"activeTab", "scripting", "storage"})
         # Host permissions must stay local-only: the page HTML never leaves the machine.
         for host in manifest["host_permissions"]:

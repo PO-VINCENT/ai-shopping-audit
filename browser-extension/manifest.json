@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CatalogReady — AI Readiness Score",
   "version": "0.8.0",
-  "description": "Score the current product page for AI shopping readiness with your local CatalogReady agent. One click: 0-100 score, findings, evidence-backed fixes.",
+  "description": "Score product pages for AI shopping readiness with your local CatalogReady agent: platform scores, findings, and fixes.",
   "icons": {
     "16": "icon16.png",
     "32": "icon32.png",
