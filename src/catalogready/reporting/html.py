@@ -164,6 +164,33 @@ def _metric_strip(findings: list[dict[str, Any]]) -> str:
     return '<div class="metric-strip">' + "".join(tiles) + "</div>"
 
 
+def _platform_table(platform_scores: dict[str, Any]) -> str:
+    if not platform_scores:
+        return ""
+    rows: list[str] = []
+    for section in platform_scores.values():
+        metric_issues = [
+            f"{METRIC_LABELS.get(key, key)}: {value.get('findings')}"
+            for key, value in (section.get("metrics") or {}).items()
+            if value.get("findings")
+        ]
+        rows.append(
+            "<tr>"
+            f"<td><strong>{html.escape(str(section.get('label', 'Platform')))}</strong><br>"
+            f"<span class='sub'>{html.escape(' · '.join(section.get('surfaces') or []))}</span></td>"
+            f"<td>{int(section.get('score') or 0)}/100</td>"
+            f"<td>{html.escape(' · '.join(metric_issues) or 'No platform-specific defects')}</td>"
+            "</tr>"
+        )
+    return (
+        "<h2>Readiness by platform</h2>"
+        "<p class='sub'>The comprehensive view includes every rule. Platform views include only rules traced to that platform.</p>"
+        "<table><tr><th>Platform and surfaces</th><th>Score</th><th>Metric findings</th></tr>"
+        + "".join(rows)
+        + "</table>"
+    )
+
+
 def _findings_section(findings: list[dict[str, Any]]) -> str:
     if not findings:
         return "<p>No findings were produced. Everything checked is machine-readable.</p>"
@@ -328,6 +355,7 @@ def _agent_report(result: dict[str, Any]) -> str:
   </div>
   {'<p class="sub">Findings deduct ' + str(readiness.get("deductions")) + ' points from the ' + str(readiness.get("raw_score")) + '-point check total.</p>' if readiness.get("deductions") else ''}
   {cap_html}
+  {_platform_table(readiness.get("platform_scores") or {})}
   <div class="actions">
     <button onclick="downloadCard()">Download score card (PNG)</button>
     <button onclick="copyText('jsonld', this)">Copy recommended JSON-LD</button>

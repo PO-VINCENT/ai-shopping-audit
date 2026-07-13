@@ -21,6 +21,16 @@ class DashboardTests(unittest.TestCase):
             self.assertNotIn("src=\"http", content)
             self.assertNotIn("@import", content)
 
+    def test_dashboard_explains_deductions_and_contains_fixes_overflow(self) -> None:
+        app = (_DASHBOARD_DIR / "app.js").read_text(encoding="utf-8")
+        css = (_DASHBOARD_DIR / "styles.css").read_text(encoding="utf-8")
+        html = (_DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="score-breakdown"', html)
+        self.assertIn("deduction_items", app)
+        self.assertIn("renderScoreBreakdown(readiness)", app)
+        self.assertIn("#jsonld-wrap { min-width: 0; }", css)
+        self.assertIn("max-width: 100%", css)
+
     def test_i18n_languages_cover_the_same_keys(self) -> None:
         import re
 

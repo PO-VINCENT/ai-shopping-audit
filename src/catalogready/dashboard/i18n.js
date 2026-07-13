@@ -110,6 +110,14 @@ const I18N = {
     summaryWeakest: (metric, high, total) =>
       `Weakest area: ${metric} (${high} critical of ${total} findings).`,
     metricAll: "All findings",
+    platformClear: "No platform-specific defects",
+    scoreBreakdownTitle: "Comprehensive score calculation",
+    checkPoints: (n) => `${n} check points`,
+    deductionPoints: (n) => `${n} finding deductions`,
+    deductionListTitle: "Exactly what was deducted",
+    noDeductions: "No finding deductions were applied.",
+    scoreBeforeCap: (n) => `${n} before the safety cap`,
+    scoreCapApplied: (cap, score) => `capped at ${cap}, final score ${score}`,
     metrics: {
       machine_readability: { name: "Readability", question: "Can a parser extract the product at all?" },
       validity: { name: "Validity", question: "Is the data well-formed against its standard?" },
@@ -268,6 +276,14 @@ const I18N = {
     summaryWeakest: (metric, high, total) =>
       `最薄弱维度：${metric}（${total} 项问题中 ${high} 项严重）。`,
     metricAll: "全部问题",
+    platformClear: "未发现平台相关缺陷",
+    scoreBreakdownTitle: "综合评分计算",
+    checkPoints: (n) => `${n} 分检查项得分`,
+    deductionPoints: (n) => `${n} 分问题扣分`,
+    deductionListTitle: "具体扣分明细",
+    noDeductions: "未应用任何问题扣分。",
+    scoreBeforeCap: (n) => `安全封顶前为 ${n} 分`,
+    scoreCapApplied: (cap, score) => `封顶 ${cap} 分，最终得分 ${score} 分`,
     metrics: {
       machine_readability: { name: "机器可读性", question: "解析器能否提取出商品信息？" },
       validity: { name: "数据有效性", question: "数据是否符合相应标准格式？" },

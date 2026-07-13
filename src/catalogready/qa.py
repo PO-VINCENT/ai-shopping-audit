@@ -63,6 +63,10 @@ def _score_summary(result: dict[str, Any]) -> str:
     for key, section in (readiness.get("components") or {}).items():
         label = PILLAR_LABELS.get(key, key.replace("_", " ").title())
         lines.append(f"  {label}: {section.get('score')}/{section.get('max_score')}")
+    if readiness.get("platform_scores"):
+        lines.append("Platform views:")
+        for section in readiness["platform_scores"].values():
+            lines.append(f"  {section.get('label')}: {section.get('score')}/100")
     reasons = readiness.get("cap_reasons") or []
     if reasons:
         lines.append(
