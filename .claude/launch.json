@@ -4,7 +4,8 @@
     {
       "name": "dashboard",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "catalogready", "dashboard", "--no-open"],
+      "runtimeArgs": ["run", "catalogready-local"],
+      "autoPort": true,
       "port": 8080
     }
   ]
