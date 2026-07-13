@@ -374,7 +374,8 @@ Rules with sources: [docs/RULES.md](docs/RULES.md) ·
 Metrics & landscape: [docs/METRICS.md](docs/METRICS.md) ·
 Scoring: [docs/scoring-methodology.md](docs/scoring-methodology.md) ·
 Interoperability: [docs/INTEROPERABILITY.md](docs/INTEROPERABILITY.md) ·
-Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
+Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md) ·
+Browser extension privacy: [docs/PRIVACY.md](docs/PRIVACY.md)
 
 ## Contact
 
