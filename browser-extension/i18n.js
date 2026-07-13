@@ -70,6 +70,14 @@ const I18N = {
     helpNeed: "Questions or fix help:",
     keyHint:
       "To use a model provider, add its key to the local server's .env (e.g. OPENAI_API_KEY=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
+    scoreBreakdownTitle: "Comprehensive score calculation",
+    checkPoints: (n) => `${n} check points`,
+    deductionPoints: (n) => `${n} deductions`,
+    deductionListTitle: "Exact deductions",
+    noDeductions: "No finding deductions were applied.",
+    scoreBeforeCap: (n) => `${n} before cap`,
+    scoreCapApplied: (cap, score) => `capped at ${cap}, final ${score}`,
+    platformScoresTitle: "Readiness by platform",
     metrics: {
       machine_readability: "Readability",
       validity: "Validity",
@@ -178,6 +186,14 @@ const I18N = {
     helpNeed: "问题反馈或修复求助：",
     keyHint:
       "使用模型提供方需在本地服务器的 .env 中配置密钥（如 OPENAI_API_KEY=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
+    scoreBreakdownTitle: "综合评分计算",
+    checkPoints: (n) => `${n} 分检查项`,
+    deductionPoints: (n) => `${n} 分扣分`,
+    deductionListTitle: "具体扣分",
+    noDeductions: "未应用任何问题扣分。",
+    scoreBeforeCap: (n) => `封顶前 ${n} 分`,
+    scoreCapApplied: (cap, score) => `封顶 ${cap} 分，最终 ${score} 分`,
+    platformScoresTitle: "各平台就绪评分",
     metrics: {
       machine_readability: "机器可读性",
       validity: "数据有效性",
