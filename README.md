@@ -213,6 +213,25 @@ The full guide — including **Copilot** (VS Code agent mode) and each
 vendor as the BYO model inside CatalogReady — is
 [docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md).
 
+## Use directly as a Codex skill
+
+Install the bundled skill once:
+
+```bash
+mkdir -p ~/.codex/skills
+cp -R skills/catalogready-audit ~/.codex/skills/
+```
+
+Then invoke it directly in Codex:
+
+```text
+$catalogready-audit audit https://your-store.com/products/example and explain the platform scores
+```
+
+The skill remains a thin wrapper over the same deterministic CatalogReady CLI.
+It supports product URLs, saved HTML, and CSV catalogs without duplicating or
+changing the scoring rules.
+
 ## Install and run
 
 ```bash

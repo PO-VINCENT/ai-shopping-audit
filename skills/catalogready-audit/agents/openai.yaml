@@ -1,0 +1,4 @@
+interface:
+  display_name: "CatalogReady Audit"
+  short_description: "Audit product pages for AI shopping readiness"
+  default_prompt: "Use $catalogready-audit to audit this product page and explain the platform scores and highest-priority fixes."
