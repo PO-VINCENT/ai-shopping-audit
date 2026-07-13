@@ -162,8 +162,11 @@ footer { margin-top: .7rem; color: var(--muted); font-size: .68rem; text-align: 
 .deduction-list .no-deduction { color: var(--good); }
 .platform-scores { display: grid; grid-template-columns: 1fr 1fr; gap: .3rem; margin-top: .55rem; }
 .platform-title { grid-column: 1 / -1; margin-top: 0; }
-.platform-card { display: flex; justify-content: space-between; gap: .35rem; min-width: 0; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); padding: .35rem .45rem; font-size: .68rem; }
+.platform-card { display: flex; justify-content: space-between; gap: .35rem; width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 7px; background: var(--panel); color: var(--text); padding: .35rem .45rem; font: inherit; font-size: .68rem; text-align: left; cursor: pointer; }
 .platform-card.comprehensive { grid-column: 1 / -1; border-color: var(--accent); }
+.platform-card:hover { border-color: var(--accent); }
+.platform-card.is-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.platform-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .platform-card > span { min-width: 0; }
 .platform-card small { display: block; color: var(--muted); font-size: .58rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .platform-card > strong { white-space: nowrap; }

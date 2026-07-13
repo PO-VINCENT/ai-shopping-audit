@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CatalogReady — AI Readiness Score",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Audit product pages for AI shopping readiness. Get platform scores, clear deductions, and actionable fixes to improve visibility.",
   "icons": {
     "16": "icon16.png",

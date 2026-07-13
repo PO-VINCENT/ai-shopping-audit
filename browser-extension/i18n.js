@@ -70,7 +70,7 @@ const I18N = {
     helpNeed: "Questions or fix help:",
     keyHint:
       "To use a model provider, add its key to the local server's .env (e.g. OPENAI_API_KEY=…) and restart the server. See docs/BYO-KEYS.md. The audit itself needs no key.",
-    scoreBreakdownTitle: "Comprehensive score calculation",
+    scoreBreakdownTitle: (platform) => `${platform} score calculation`,
     checkPoints: (n) => `${n} check points`,
     deductionPoints: (n) => `${n} deductions`,
     deductionListTitle: "Exact deductions",
@@ -186,7 +186,7 @@ const I18N = {
     helpNeed: "问题反馈或修复求助：",
     keyHint:
       "使用模型提供方需在本地服务器的 .env 中配置密钥（如 OPENAI_API_KEY=…）并重启服务器，详见 docs/BYO-KEYS.md。审计本身无需任何密钥。",
-    scoreBreakdownTitle: "综合评分计算",
+    scoreBreakdownTitle: (platform) => `${platform}评分计算`,
     checkPoints: (n) => `${n} 分检查项`,
     deductionPoints: (n) => `${n} 分扣分`,
     deductionListTitle: "具体扣分",
