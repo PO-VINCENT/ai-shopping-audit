@@ -18,7 +18,7 @@ from .discovery.indexnow import audit_indexnow
 
 _IMAGE_READ_LIMIT = 512 * 1024
 _MAX_IMAGES = 3
-_USER_AGENT = "CatalogReady/0.6 online checks (bounded, user-initiated)"
+_USER_AGENT = "CatalogReady/0.7 online checks (bounded, user-initiated)"
 
 
 def _get(url: str, limit: int) -> tuple[int, bytes]:

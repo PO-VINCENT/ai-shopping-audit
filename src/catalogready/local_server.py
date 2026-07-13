@@ -101,7 +101,7 @@ _STATIC_FILES = {
 
 
 class CatalogReadyHandler(BaseHTTPRequestHandler):
-    server_version = "CatalogReadyLocal/0.6"
+    server_version = "CatalogReadyLocal/0.7"
 
     def _cors(self) -> None:
         origin = self.headers.get("Origin", "")
