@@ -11,7 +11,8 @@ class ExtensionTests(unittest.TestCase):
     def test_manifest_is_mv3_with_minimal_permissions(self) -> None:
         manifest = json.loads((_EXTENSION_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["manifest_version"], 3)
-        self.assertEqual(manifest["version"], "0.8.0")
+        self.assertEqual(manifest["version"], "0.8.1")
+        self.assertLessEqual(len(manifest["description"]), 132)
         self.assertEqual(set(manifest["permissions"]), {"activeTab", "scripting", "storage"})
         # Host permissions must stay local-only: the page HTML never leaves the machine.
         for host in manifest["host_permissions"]:
@@ -54,6 +55,11 @@ class ExtensionTests(unittest.TestCase):
         self.assertIn('id="platform-scores"', html)
         self.assertIn("deduction_items", script)
         self.assertIn("platform_scores", script)
+        for platform in ("comprehensive", "openai", "google", "microsoft", "anthropic", "perplexity"):
+            self.assertIn(f'"{platform}"', script)
+        self.assertIn('data-platform="${platform}"', script)
+        self.assertIn("state.scorePlatform", script)
+        self.assertIn(".platform-card.is-active", css)
         self.assertIn("#jsonld-wrap { min-width: 0; max-width: 100%; }", css)
 
 

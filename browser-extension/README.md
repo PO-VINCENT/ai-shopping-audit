@@ -46,9 +46,12 @@ The popup's "ask the agent" box links here too.
 
 ## Privacy and safety
 
-- Page HTML is sent **only** to the local server URL in settings
-  (default `http://127.0.0.1:8080`) — never to a third party.
+- Page HTML is sent **only** to the user-configured local server URL
+  (default `http://127.0.0.1:8080`). The deterministic audit sends it no
+  farther. If a user deliberately enables a model provider, the local service
+  may send the minimum relevant evidence or audit context to that provider.
 - Provider API keys stay in the local server environment. The extension
   never asks for or stores them; settings hold only the server URL,
   provider name, and model ID.
 - The agent is read-only: it never writes to a storefront or feed.
+- See the [browser extension privacy policy](../docs/PRIVACY.md).

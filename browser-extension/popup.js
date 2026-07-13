@@ -5,7 +5,17 @@
    requested or stored; settings hold server URL, provider name, model ID. */
 
 const $ = (id) => document.getElementById(id);
-const state = { page: null, result: null, draft: null, answers: {}, staticResult: null, staticBlocked: false, view: "rendered" };
+const PLATFORM_SCORE_ORDER = ["comprehensive", "openai", "google", "microsoft", "anthropic", "perplexity"];
+const state = {
+  page: null,
+  result: null,
+  draft: null,
+  answers: {},
+  staticResult: null,
+  staticBlocked: false,
+  view: "rendered",
+  scorePlatform: "comprehensive",
+};
 
 function escapeHtml(value) {
   const div = document.createElement("div");
@@ -123,6 +133,7 @@ async function analyze() {
     state.staticResult = null;
     state.staticBlocked = false;
     state.view = "rendered";
+    state.scorePlatform = "comprehensive";
     render();
     setStatus("");
     autoDraft();
@@ -227,13 +238,14 @@ function renderPillars(components) {
 }
 
 function renderScoreBreakdown(readiness) {
-  const comprehensive = (readiness.platform_scores || {}).comprehensive || readiness;
-  const raw = Number(comprehensive.raw_score || 0);
-  const deductions = Number(comprehensive.deductions || 0);
+  const scores = readiness.platform_scores || {};
+  const section = scores[state.scorePlatform] || scores.comprehensive || readiness;
+  const raw = Number(section.raw_score || 0);
+  const deductions = Number(section.deductions || 0);
   const beforeCap = Math.max(1, raw - deductions);
-  const score = Number(comprehensive.score || readiness.score || 0);
-  const cap = Number(comprehensive.safety_cap || 100);
-  const items = comprehensive.deduction_items || [];
+  const score = Number(section.score || readiness.score || 0);
+  const cap = Number(section.safety_cap || 100);
+  const items = section.deduction_items || [];
   const rows = items.length
     ? items.map((item) =>
         `<li><span><span class="chip">${escapeHtml(item.rule_id)}</span> ` +
@@ -247,7 +259,7 @@ function renderScoreBreakdown(readiness) {
       `${escapeHtml(i18n.t("scoreCapApplied", cap, score))}</div>`
     : "";
   $("score-breakdown").innerHTML =
-    `<div class="score-breakdown-head"><strong>${escapeHtml(i18n.t("scoreBreakdownTitle"))}</strong>` +
+    `<div class="score-breakdown-head"><strong>${escapeHtml(i18n.t("scoreBreakdownTitle", section.label || state.scorePlatform))}</strong>` +
     `<strong>${score}/100</strong></div>` +
     `<div class="score-equation"><span>${escapeHtml(i18n.t("checkPoints", raw))}</span>` +
     `<b>−</b><span>${escapeHtml(i18n.t("deductionPoints", deductions))}</span>` +
@@ -258,15 +270,20 @@ function renderScoreBreakdown(readiness) {
 
 function renderPlatformScores(readiness) {
   const scores = readiness.platform_scores || {};
-  $("platform-scores").innerHTML = Object.keys(scores).length
+  const available = PLATFORM_SCORE_ORDER.filter((platform) => scores[platform]);
+  if (!scores[state.scorePlatform]) state.scorePlatform = "comprehensive";
+  $("platform-scores").innerHTML = available.length
     ? `<div class="platform-title">${escapeHtml(i18n.t("platformScoresTitle"))}</div>` +
-      Object.entries(scores).map(([platform, section]) =>
-        `<div class="platform-card ${platform === "comprehensive" ? "comprehensive" : ""}">` +
+      available.map((platform) => {
+        const section = scores[platform];
+        return `<button class="platform-card ${platform === "comprehensive" ? "comprehensive" : ""} ` +
+        `${platform === state.scorePlatform ? "is-active" : ""}" data-platform="${platform}" type="button" ` +
+        `aria-pressed="${platform === state.scorePlatform}">` +
         `<span><strong>${escapeHtml(section.label || platform)}</strong>` +
         `<small>${escapeHtml((section.surfaces || []).join(" · "))}</small></span>` +
         `<strong style="color:${scoreColor(Number(section.score || 0) / 100)}">${section.score}/100</strong>` +
-        `</div>`
-      ).join("")
+        `</button>`;
+      }).join("")
     : "";
 }
 
@@ -540,6 +557,14 @@ $("pillars").addEventListener("click", (event) => {
   if (!button) return;
   const detail = button.parentElement.querySelector(".pillar-detail");
   detail.hidden = !detail.hidden;
+});
+$("platform-scores").addEventListener("click", (event) => {
+  const card = event.target.closest(".platform-card");
+  if (!card) return;
+  state.scorePlatform = card.dataset.platform;
+  const readiness = (activeResult().readiness || {}).before || {};
+  renderScoreBreakdown(readiness);
+  renderPlatformScores(readiness);
 });
 $("copy-jsonld").addEventListener("click", (event) => {
   navigator.clipboard.writeText($("jsonld").textContent).then(() => {
