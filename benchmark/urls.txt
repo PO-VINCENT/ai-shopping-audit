@@ -1,0 +1,113 @@
+# CatalogReady benchmark product pages
+# Collected 2026-07-14. One product page per domain where practical.
+# The benchmark script ignores blank lines and lines beginning with '#'.
+
+# Fashion / footwear (10)
+# Nike — Air Force 1 '07 WB
+https://www.nike.com/t/air-force-1-07-wb-mens-shoes-XVPIszaq/FZ0627-010
+# tentree — Men's TreeBlend Baker T-Shirt
+https://www.tentree.com/products/mens-basic-tshirt-white
+# Bombas — Men's Originals Ankle Socks
+https://bombas.com/products/the-men-s-ankle-sock-grey-multicolor-large
+# Allbirds — Men's Tree Runner Go
+https://www.allbirds.com/products/mens-tree-runner-go
+# Rothy's — The Point II
+https://rothys.com/products/womens-pointed-toe-flat-brown-sunstone
+# Thursday Boot Company — Men's Captain Boot
+https://thursdayboots.com/products/mens-black-captain
+# Girlfriend Collective — Compressive High-Rise Legging
+https://girlfriend.com/products/black-compressive-high-rise-legging
+# Everlane — The Way-High Jean 2.0
+https://www.everlane.com/products/womens-way-high-jean-2-long-medium-wash
+# Outerknown — Blanket Shirt
+https://www.outerknown.com/products/blanket-shirt-pitch-black-1
+# Taylor Stitch — The Jack in Blue Everyday Oxford
+https://www.taylorstitch.com/products/jack-in-blue-everyday-oxford-2304
+
+# Electronics (10)
+# Apple — MacBook Air
+https://www.apple.com/shop/buy-mac/macbook-air
+# Nothing — Phone (3)
+https://us.nothing.tech/products/phone-3
+# Bose — QuietComfort Ultra Headphones (2nd Gen)
+https://www.bose.com/p/headphones/bose-quietcomfort-ultra-headphones-2nd-gen/QCUH2-HEADPHONEARN.html
+# Samsung — Galaxy S26
+https://www.samsung.com/us/smartphones/galaxy-s26/buy/
+# Dell — XPS 13 Laptop
+https://www.dell.com/en-us/shop/dell-laptops/new-xps-13-laptop/spd/xps13dx13260laptop
+# Anker — 737 Power Bank (PowerCore 24K)
+https://www.anker.com/products/a1289
+# Logitech — MX Master 4
+https://www.logitech.com/en-us/shop/qr/mx-master-4
+# DJI — Osmo Pocket 3
+https://store.dji.com/product/osmo-pocket-3
+# soundcore — Life Q30 Headphones
+https://www.soundcore.com/products/A3028011
+# Google — Pixel 10 Pro
+https://store.google.com/us/product/pixel_10_pro?hl=en-US
+
+# Home / furniture (10)
+# IKEA — KALLAX Shelf Unit
+https://www.ikea.com/us/en/p/kallax-shelf-unit-white-20631639/
+# Floyd — The Bed Frame
+https://floydhome.com/products/the-bed-frame
+# Herman Miller — Aeron Chair
+https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html
+# Casper — The Original Hybrid Mattress
+https://casper.com/products/original-hybrid-v1
+# Breville — Barista Express Espresso Machine
+https://www.breville.com/en-us/product/bes870
+# Article — Sven 88-inch Tufted Leather Sofa
+https://www.article.com/product/24178/sven-88-tufted-leather-sofa-charme-tan
+# Burrow — Nomad Sofa
+https://burrow.com/products/nomad-plus-sofa
+# Le Creuset — Round Dutch Oven
+https://www.lecreuset.com/round-dutch-oven/21177US.html
+# Room & Board — Vienna Sofa
+https://www.roomandboard.com/catalog/living/sofas-and-loveseats/vienna-sofas
+# Dyson — V15 Detect Cordless Vacuum
+https://www.dyson.com/vacuum-cleaners/cordless/v15/detect-yellow
+
+# Beauty / health (10)
+# The Ordinary — Niacinamide 10% + Zinc 1%
+https://theordinary.com/en-us/niacinamide-10-zinc-1-serum-100436.html
+# CeraVe — Intensive Moisturizing Cream
+https://www.cerave.com/skincare/moisturizers/intensive-moisturizing-cream
+# Paula's Choice — Skin Perfecting 2% BHA Liquid Exfoliant
+https://www.paulaschoice.com/skin-perfecting-2pct-bha-liquid-exfoliant/201.html
+# Glossier — Boy Brow
+https://www.glossier.com/products/boy-brow
+# Fenty Beauty — Pro Filt'r Soft Matte Longwear Foundation
+https://fentybeauty.com/products/pro-filtr-soft-matte-longwear-foundation-498
+# Rare Beauty — Soft Pinch Liquid Blush
+https://www.rarebeauty.com/products/soft-pinch-liquid-blush
+# Saie — Slip Tint Undetectable Baked Setting Powder
+https://saiehello.com/products/slip-tint-undetectable-baked-setting-powder
+# Supergoop — Unseen Sunscreen SPF 50
+https://supergoop.com/products/unseen-sunscreen-spf-50
+# ILIA — Super Serum Skin Tint SPF 40
+https://iliabeauty.com/products/ora-st6
+# Tower 28 Beauty — SOS Daily Rescue Facial Spray
+https://www.tower28beauty.com/products/sos-daily-facial-rescue-spray
+
+# Grocery / marketplace (10)
+# Woolworths — Coca-Cola Classic Soft Drink Bottle 600mL
+https://www.woolworths.com.au/shop/productdetails/93167/coca-cola-bottle
+# Coles — Coca-Cola Classic Soft Drink Bottle 600mL
+https://www.coles.com.au/product/coca-cola-classic-soft-drink-bottle-600ml-5468407
+# Walmart — Cafe Bustelo Espresso Style Instant Coffee
+https://www.walmart.com/ip/17098756806
+# Target — Market Pantry Classic Roast Ground Coffee
+https://www.target.com/p/-/A-52689089
+# Magic Spoon — Variety 4 Protein Cereal
+https://magicspoon.com/products/variety-pack-cereal-case
+# Graza — Drizzle Extra Virgin Olive Oil
+https://www.graza.co/products/drizzle
+# Fly By Jing — Original Sichuan Chili Crisp
+https://flybyjing.com/products/sichuan-chili-crisp
+# iHerb — NOW Foods Vitamin D-3 5,000 IU
+https://www.iherb.com/pr/now-foods-vitamin-d-3-high-potency-5-000-iu-30-softgels/140406
+# OLIPOP — Classic Soda Variety Pack
+https://drinkolipop.com/products/classic-soda-variety-pack
+# poppi — Bombshells Variety Pack
+https://drinkpoppi.com/products/bombshells-variety-pack

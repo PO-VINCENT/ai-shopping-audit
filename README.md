@@ -9,6 +9,38 @@ paste-ready fixes.
 
 **Offline · deterministic rules · no API key · never writes to your store.**
 
+## The benchmark result
+
+> **40 of 50 real product pages (80%) were not ready for AI shopping
+> agents — even though every page was reachable and auditable.**
+
+The benchmark covers 50 different domains across fashion, electronics,
+home, beauty, and grocery. It uses one GET per page and the same
+deterministic audit as the CLI: no model, no synthetic data, and no points
+for generated fixes. [See every score and the methodology →](benchmark/BENCHMARK.md)
+
+**Benchmark earns trust. The case makes it memorable. The scorecard makes
+it shareable.**
+
+**A real skincare contrast:**
+[CeraVe Intensive Moisturizing Cream](https://www.cerave.com/skincare/moisturizers/intensive-moisturizing-cream)
+scored **16/100** with 4 high-severity findings. Another mainstream skincare
+page —
+[The Ordinary Niacinamide 10% + Zinc 1%](https://theordinary.com/en-us/niacinamide-10-zinc-1-serum-100436.html)
+— scored **91/100** with no high-severity findings: a **75-point gap**
+in machine-readable product identity and evidence.
+
+[![CatalogReady benchmark: CeraVe scored 16 while The Ordinary scored 91](benchmark/scorecards/03-cerave-vs-theordinary.png)](benchmark/BENCHMARK.md)
+
+Reproduce the full 50-page benchmark:
+
+```bash
+uv run python scripts/benchmark.py benchmark/urls.txt benchmark/BENCHMARK.md
+```
+
+*The benchmark measures fetched static HTML, not product quality,
+popularity, or observed ranking in an AI answer.*
+
 ## See it in action
 
 Audit a live product page from the CatalogReady browser extension, compare the
