@@ -9,6 +9,16 @@ paste-ready fixes.
 
 **Offline · deterministic rules · no API key · never writes to your store.**
 
+## Install the Chrome extension
+
+**CatalogReady — AI Readiness Score is now available in the Chrome Web
+Store.** Audit any product page in one click, compare platform-specific
+readiness scores, inspect every deduction, and get actionable fixes.
+
+[**Add CatalogReady to Chrome →**](https://chromewebstore.google.com/detail/hakmmfmdiaalfnbcipmanhjlblbdhnem?utm_source=item-share-cb)
+
+[![CatalogReady — AI Readiness Score installed in Chrome](docs/assets/catalogready-chrome-web-store.png)](https://chromewebstore.google.com/detail/hakmmfmdiaalfnbcipmanhjlblbdhnem?utm_source=item-share-cb)
+
 ## The benchmark result
 
 > **40 of 50 real product pages (80%) were not ready for AI shopping
