@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Agent Skill** (`skills/catalogready/SKILL.md`): a portable
+  [agentskills.io](https://agentskills.io) skill that teaches Claude
+  Code, Codex CLI, and other adopters when to run a CatalogReady audit,
+  which MCP tool (or CLI fallback) to use, and the guardrails (no keys
+  in tool args, deterministic default, evidence-only claims). Checked-in
+  symlinks under `.claude/skills/` and `.codex/skills/` make it
+  auto-discoverable inside the repo; install snippets for global use are
+  in `docs/QUICKSTART-AI-ASSISTANTS.md`.
+
 ## 0.7.0 — 2026-07-12
 
 ### Added

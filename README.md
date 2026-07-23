@@ -171,6 +171,11 @@ all accept file uploads.)
 Agentic assistants can call CatalogReady as a tool via its MCP server.
 Then just ask: *"Fetch https://store.example/products/x and run the
 CatalogReady agent on the HTML — summarize the score and the top fixes."*
+A matching [Agent Skill](skills/catalogready/SKILL.md) teaches Claude
+Code, Codex CLI, and any other [agentskills.io](https://agentskills.io)
+adopter when to reach for the tools and which guardrails apply — install
+snippets in
+[QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md).
 
 **Claude Code** — one line:
 
@@ -407,10 +412,17 @@ These are secondary to the page audit and documented in
 - `catalogready catalog feed.csv` — CSV catalog audit with the same
   deduction-and-cap scoring.
 - `catalogready-api` — HTTP server with OpenAPI docs and an A2A agent card.
-- A Chromium extension (`browser-extension/`) — one click on any product
-  page captures the rendered HTML and shows the score, findings, merchant
-  questions, auto-drafted fixes, and the ask-the-agent box. Works on
-  bot-protected storefronts because it reads what your browser rendered.
+- A Chromium extension (`browser-extension-standalone/`, on the
+  [Chrome Web Store](https://chromewebstore.google.com/detail/hakmmfmdiaalfnbcipmanhjlblbdhnem))
+  — one click on any product page runs the deterministic audit fully
+  in-browser: score, per-platform views, findings, merchant questions,
+  and a rendered-vs-crawler comparison. No server needed; an optional
+  local server adds AI fix drafts. Works on bot-protected storefronts
+  because it reads what your browser rendered.
+- An [Agent Skill](skills/catalogready/SKILL.md) (`skills/catalogready/`)
+  auto-discovered by Claude Code and Codex CLI inside this repo, and
+  installable globally — see
+  [docs/QUICKSTART-AI-ASSISTANTS.md](docs/QUICKSTART-AI-ASSISTANTS.md).
 - Optional model-assisted listing drafts (OpenAI, Gemini, Claude, DeepSeek)
   with bring-your-own keys via server environment variables — never in tool
   arguments or browser storage — and deterministic claim evaluation with
