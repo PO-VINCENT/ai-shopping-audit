@@ -1,0 +1,604 @@
+"use strict";
+
+/* CatalogReady extension popup. Captures the active tab's rendered HTML and
+   sends it to the LOCAL CatalogReady server only. No provider keys are ever
+   requested or stored; settings hold server URL, provider name, model ID. */
+
+const $ = (id) => document.getElementById(id);
+const PLATFORM_SCORE_ORDER = ["comprehensive", "openai", "google", "microsoft", "anthropic", "perplexity"];
+const state = {
+  page: null,
+  result: null,
+  draft: null,
+  answers: {},
+  staticResult: null,
+  staticBlocked: false,
+  view: "rendered",
+  scorePlatform: "comprehensive",
+};
+
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = String(value == null ? "" : value);
+  return div.innerHTML;
+}
+
+function scoreColor(ratio) {
+  return ratio >= 0.8 ? "var(--good)" : ratio >= 0.5 ? "var(--warn)" : "var(--bad)";
+}
+
+function setStatus(message, isError = false) {
+  $("status").textContent = message || "";
+  $("status").classList.toggle("error", isError);
+}
+
+function friendlyError(message) {
+  if (/missing api key|model id is required/i.test(message)) {
+    return `${message} — ${i18n.t("keyHint")}`;
+  }
+  return message;
+}
+
+function activeResult() {
+  return state.view === "crawler" && state.staticResult ? state.staticResult : state.result;
+}
+
+function serverBase() {
+  return $("server").value.trim().replace(/\/$/, "");
+}
+
+/* ---------- local deterministic engine (no server) ---------- */
+function localAudit(url, html) {
+  const before = CR.auditProductPage(html, url);
+  let product = {};
+  try { product = (CR.evidence_from_html(url, html) || {}).product || {}; } catch (e) { /* ignore */ }
+  return {
+    readiness: { before },
+    findings: before.findings || [],
+    evidence_record: { product },
+    merchant_questions: [],
+    proposed_changes: [],
+    validation: {},
+  };
+}
+
+async function api(path, body) {
+  const response = await fetch(`${serverBase()}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || `Server returned ${response.status}`);
+  return payload;
+}
+
+/* ---------- settings ---------- */
+
+async function loadSettings() {
+  try {
+    const settings = await chrome.storage.local.get(["server", "provider", "model"]);
+    if (settings.server) $("server").value = settings.server;
+    if (settings.provider) $("provider").value = settings.provider;
+    if (settings.model) $("model").value = settings.model;
+  } catch (error) {
+    /* not running as an extension (layout preview) */
+  }
+}
+
+async function saveSettings() {
+  try {
+    await chrome.storage.local.set({
+      server: serverBase(),
+      provider: $("provider").value,
+      model: $("model").value.trim(),
+    });
+  } catch (error) {
+    /* not running as an extension */
+  }
+}
+
+/* ---------- page capture ---------- */
+
+async function currentPage() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id || !/^https?:/.test(tab.url || "")) {
+    throw new Error(i18n.t("errNoPage"));
+  }
+  const results = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => ({ url: window.location.href, html: document.documentElement.outerHTML }),
+  });
+  if (!results[0]?.result?.html) throw new Error(i18n.t("errNoHtml"));
+  return results[0].result;
+}
+
+/* ---------- agent runs ---------- */
+
+async function runAgent(mode) {
+  const body = {
+    url: state.page.url,
+    html: state.page.html,
+    mode,
+    provider: $("provider").value,
+    model: $("model").value.trim(),
+  };
+  if (Object.keys(state.answers).length) body.merchant_answers = state.answers;
+  return api("/v1/agent/html", body);
+}
+
+async function analyze() {
+  const button = $("analyze");
+  button.disabled = true;
+  $("result").hidden = true;
+  try {
+    await saveSettings();
+    setStatus(i18n.t("statusReading"));
+    state.page = await currentPage();
+    state.answers = {};
+    setStatus(i18n.t("statusAuditing"));
+    state.result = localAudit(state.page.url, state.page.html);
+    state.draft = null;
+    state.staticResult = null;
+    state.staticBlocked = false;
+    state.view = "rendered";
+    state.scorePlatform = "comprehensive";
+    render();
+    setStatus("");
+    autoDraft();
+    autoOnlineChecks();
+  } catch (error) {
+    setStatus(friendlyError(error.message), true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function resume() {
+  document.querySelectorAll("#questions input").forEach((input) => {
+    const value = input.value.trim();
+    if (value) state.answers[input.dataset.field] = value;
+  });
+  const button = $("resume");
+  button.disabled = true;
+  setStatus(i18n.t("statusRerunning"));
+  try {
+    state.result = localAudit(state.page.url, state.page.html);
+    state.draft = null;
+    state.staticResult = null;
+    state.staticBlocked = false;
+    state.view = "rendered";
+    render();
+    setStatus("");
+    autoDraft();
+    autoOnlineChecks();
+  } catch (error) {
+    setStatus(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function autoDraft() {
+  try {
+    state.draft = await runAgent("draft");
+    renderFixes();
+    renderSummary();
+  } catch (error) {
+    /* fix suggestions are best-effort */
+  }
+}
+
+async function autoOnlineChecks() {
+  // Bounded image-size checks via the local server (max 3 fetches).
+  // Informational: findings are appended, the score never changes.
+  try {
+    const images = state.result?.evidence_record?.product?.images || [];
+    if (!images.length) return;
+    const payload = await api("/v1/online-checks", {
+      url: state.page.url,
+      images,
+    });
+    if (payload.findings?.length) {
+      state.result.findings.push(...payload.findings);
+      renderFindings();
+      renderSummary();
+    }
+  } catch (error) {
+    /* online checks are best-effort */
+  }
+}
+
+/* ---------- rendering ---------- */
+
+function renderDial(score) {
+  const circumference = 2 * Math.PI * 56;
+  const filled = (circumference * Math.max(0, Math.min(score, 100))) / 100;
+  $("dial").innerHTML =
+    `<circle cx="66" cy="66" r="56" fill="none" stroke="var(--chip)" stroke-width="11"/>` +
+    `<circle cx="66" cy="66" r="56" fill="none" stroke="${scoreColor(score / 100)}" stroke-width="11"` +
+    ` stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circumference.toFixed(1)}"` +
+    ` transform="rotate(-90 66 66)"/>` +
+    `<text x="66" y="64" text-anchor="middle" font-size="36" font-weight="700">${score}</text>` +
+    `<text x="66" y="88" text-anchor="middle" font-size="13" opacity="0.7">/ 100</text>`;
+}
+
+function renderPillars(components) {
+  $("pillars").innerHTML = Object.entries(components)
+    .map(([key, section]) => {
+      const max = section.max_score || 1;
+      const ratio = section.score / max;
+      const checks = Object.entries(section.checks || {})
+        .map(
+          ([check, passed]) =>
+            `<li class="${passed ? "pass" : "fail"}"><span>${passed ? "✓" : "✗"}</span> ` +
+            `${escapeHtml(i18n.checkLabel(check))}</li>`
+        )
+        .join("");
+      return (
+        `<div><button class="pillar" type="button">` +
+        `<span>${escapeHtml(i18n.pillarLabel(key))}</span>` +
+        `<span class="bar"><i style="width:${Math.round(ratio * 100)}%;background:${scoreColor(ratio)}"></i></span>` +
+        `<span>${section.score}/${max}</span></button>` +
+        `<div class="pillar-detail" hidden><ul>${checks}</ul></div></div>`
+      );
+    })
+    .join("");
+}
+
+function renderScoreBreakdown(readiness) {
+  const scores = readiness.platform_scores || {};
+  const section = scores[state.scorePlatform] || scores.comprehensive || readiness;
+  const raw = Number(section.raw_score || 0);
+  const deductions = Number(section.deductions || 0);
+  const beforeCap = Math.max(1, raw - deductions);
+  const score = Number(section.score || readiness.score || 0);
+  const cap = Number(section.safety_cap || 100);
+  const items = section.deduction_items || [];
+  const rows = items.length
+    ? items.map((item) =>
+        `<li><span><span class="chip">${escapeHtml(item.rule_id)}</span> ` +
+        `${escapeHtml(item.title)} <span class="deduction-meta">${escapeHtml(item.severity)} · ` +
+        `${escapeHtml(i18n.metricLabel(item.metric || ""))}</span></span>` +
+        `<strong>−${Number(item.points || 0)}</strong></li>`
+      ).join("")
+    : `<li class="no-deduction">${escapeHtml(i18n.t("noDeductions"))}</li>`;
+  const capLine = cap < beforeCap
+    ? `<div class="cap-equation">${escapeHtml(i18n.t("scoreBeforeCap", beforeCap))} → ` +
+      `${escapeHtml(i18n.t("scoreCapApplied", cap, score))}</div>`
+    : "";
+  $("score-breakdown").innerHTML =
+    `<div class="score-breakdown-head"><strong>${escapeHtml(i18n.t("scoreBreakdownTitle", section.label || state.scorePlatform))}</strong>` +
+    `<strong>${score}/100</strong></div>` +
+    `<div class="score-equation"><span>${escapeHtml(i18n.t("checkPoints", raw))}</span>` +
+    `<b>−</b><span>${escapeHtml(i18n.t("deductionPoints", deductions))}</span>` +
+    `<b>=</b><strong>${beforeCap}</strong></div>${capLine}` +
+    `<div class="deduction-title">${escapeHtml(i18n.t("deductionListTitle"))}</div>` +
+    `<ul class="deduction-list">${rows}</ul>`;
+}
+
+function renderPlatformScores(readiness) {
+  const scores = readiness.platform_scores || {};
+  const available = PLATFORM_SCORE_ORDER.filter((platform) => scores[platform]);
+  if (!scores[state.scorePlatform]) state.scorePlatform = "comprehensive";
+  $("platform-scores").innerHTML = available.length
+    ? `<div class="platform-title">${escapeHtml(i18n.t("platformScoresTitle"))}</div>` +
+      available.map((platform) => {
+        const section = scores[platform];
+        return `<button class="platform-card ${platform === "comprehensive" ? "comprehensive" : ""} ` +
+        `${platform === state.scorePlatform ? "is-active" : ""}" data-platform="${platform}" type="button" ` +
+        `aria-pressed="${platform === state.scorePlatform}">` +
+        `<span><strong>${escapeHtml(section.label || platform)}</strong>` +
+        `<small>${escapeHtml((section.surfaces || []).join(" · "))}</small></span>` +
+        `<strong style="color:${scoreColor(Number(section.score || 0) / 100)}">${section.score}/100</strong>` +
+        `</button>`;
+      }).join("")
+    : "";
+}
+
+function renderSummary() {
+  const active = activeResult();
+  const readiness = (active.readiness || {}).before || {};
+  const score = readiness.score || 0;
+  const findings = active.findings || [];
+  const high = findings.filter((f) => f.severity === "high").length;
+  const blocking = (active.merchant_questions || []).filter((q) => q.blocking).length;
+  let verdict;
+  if (score >= 80 && !(readiness.cap_reasons || []).length) {
+    verdict = i18n.t("verdictReady");
+  } else if (score >= 50) {
+    verdict = i18n.t("verdictPartial");
+  } else {
+    verdict = i18n.t("verdictPoor");
+  }
+  const points = [];
+  if ((readiness.cap_reasons || []).length) {
+    points.push(escapeHtml(i18n.t("summaryCapped", readiness.safety_cap, readiness.cap_reasons.join(" "))));
+  }
+  if (readiness.deductions) {
+    points.push(escapeHtml(i18n.t("summaryDeductions", readiness.deductions)));
+  }
+  if (high) points.push(escapeHtml(i18n.t("summaryCritical", high)));
+  if (blocking) points.push(escapeHtml(i18n.t("summaryBlocking", blocking)));
+  const validation = (state.draft || {}).validation || {};
+  if (state.view === "rendered" && (state.draft?.proposed_changes || []).length && validation.after_score != null) {
+    points.push(
+      `<span class="autofix">` +
+      escapeHtml(
+        i18n.t(
+          "summaryAutofix",
+          state.draft.proposed_changes.length,
+          validation.before_score,
+          validation.after_score
+        )
+      ) +
+      `</span>`
+    );
+  }
+  $("summary").innerHTML =
+    `<div class="verdict">${escapeHtml(verdict)} (${score}/100)</div>` +
+    (points.length ? `<ul>${points.map((p) => `<li>${p}</li>`).join("")}</ul>` : "");
+}
+
+const METRIC_ORDER = [
+  "machine_readability", "validity", "completeness", "consistency",
+  "trust", "accessibility", "transactability", "freshness",
+];
+
+function renderMetricStrip(findings) {
+  const status = {};
+  METRIC_ORDER.forEach((key) => (status[key] = { level: "clean", count: 0 }));
+  findings.forEach((item) => {
+    const entry = status[item.metric];
+    if (!entry) return;
+    entry.count += 1;
+    if (item.severity === "high") entry.level = "bad";
+    else if (entry.level !== "bad") entry.level = "warn";
+  });
+  $("metric-strip").innerHTML = METRIC_ORDER.map((key) => {
+    const entry = status[key];
+    const count = entry.count ? ` ${entry.count}` : "";
+    return (
+      `<span class="metric-tile ${entry.level}" title="${escapeHtml(i18n.metricLabel(key))}">` +
+      `<span class="m-dot"></span>${escapeHtml(i18n.metricLabel(key))}${count}</span>`
+    );
+  }).join("");
+}
+
+function renderFindings() {
+  const findings = activeResult().findings || [];
+  const order = { high: 0, medium: 1, low: 2 };
+  const sorted = [...findings].sort((a, b) => (order[a.severity] ?? 3) - (order[b.severity] ?? 3));
+  $("findings").innerHTML = sorted.length
+    ? sorted
+        .map(
+          (item) =>
+            `<div class="finding"><h4><span class="sev ${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span> ` +
+            `${escapeHtml(item.title)}<span class="chip">${escapeHtml(item.rule_id)}</span>` +
+            (item.metric ? `<span class="chip metric-chip">${escapeHtml(i18n.metricLabel(item.metric))}</span>` : "") +
+            `</h4>` +
+            `<p>${escapeHtml(item.evidence)}</p><p class="fix">→ ${escapeHtml(item.recommendation)}</p></div>`
+        )
+        .join("")
+    : `<p class='note'>${escapeHtml(i18n.t("noFindings"))}</p>`;
+  $("findings-count").textContent = String(sorted.length);
+  renderMetricStrip(findings);
+}
+
+function renderQuestions() {
+  const questions = activeResult().merchant_questions || [];
+  $("questions").innerHTML = questions
+    .map(
+      (item) =>
+        `<div class="question"><div>` +
+        (item.blocking ? `<span class="blocking-tag">${escapeHtml(i18n.t("blocking"))}</span>` : "") +
+        `${escapeHtml(item.question)}</div>` +
+        `<div class="why">${escapeHtml(item.reason)}</div>` +
+        `<input data-field="${escapeHtml(item.field)}" type="text"` +
+        ` placeholder="${escapeHtml(i18n.t("answerPlaceholder", item.field))}" value="${escapeHtml(state.answers[item.field] || "")}"></div>`
+    )
+    .join("");
+  $("resume").hidden = !questions.length;
+  $("questions-count").textContent = String(questions.length);
+  $("questions-block").open = questions.some((item) => item.blocking);
+}
+
+function renderFixes() {
+  const source = state.view === "crawler" ? activeResult() : (state.draft || state.result);
+  const changes = source.proposed_changes || [];
+  $("changes").innerHTML = changes.length
+    ? changes
+        .map((item) => `<div class="change"><strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.operation)}</div>`)
+        .join("")
+    : `<p class='note'>${escapeHtml(i18n.t("fixesPending"))}</p>`;
+  const validation = source.validation || {};
+  $("validation").innerHTML =
+    changes.length && validation.after_score != null
+      ? `<div class="delta">${escapeHtml(i18n.t("validationLine", validation.before_score, validation.after_score))}</div>`
+      : "";
+  const jsonldChange = changes.find((item) => item.operation === "replace_product_jsonld");
+  $("jsonld-wrap").hidden = !jsonldChange;
+  if (jsonldChange) $("jsonld").textContent = JSON.stringify(jsonldChange.value, null, 2);
+  if (changes.length) $("fixes-block").open = true;
+}
+
+function render() {
+  $("result").hidden = false;
+  const active = activeResult();
+  const readiness = (active.readiness || {}).before || {};
+  const product = (active.evidence_record || {}).product || {};
+  $("product-title").textContent = product.title || state.page.url;
+  renderDial(readiness.score || 0);
+  renderPillars(readiness.components || {});
+  renderScoreBreakdown(readiness);
+  renderPlatformScores(readiness);
+  $("caps").innerHTML = (readiness.cap_reasons || []).length
+    ? `<div class="cap"><strong>${escapeHtml(i18n.t("capBanner", readiness.safety_cap))}</strong> ` +
+      readiness.cap_reasons.map(escapeHtml).join(" ") + `</div>`
+    : "";
+  renderSummary();
+  renderFindings();
+  renderQuestions();
+  renderFixes();
+  updateViewToggle();
+  $("ask-log").replaceChildren();
+}
+
+/* ---------- ask the agent ---------- */
+
+function appendAsk(role, text) {
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.textContent = text;
+  $("ask-log").appendChild(div);
+}
+
+async function ask() {
+  const input = $("ask-input");
+  const question = input.value.trim();
+  if (!question || !state.result) return;
+  input.value = "";
+  appendAsk("user", question);
+  $("ask-send").disabled = true;
+  try {
+    const reply = await api("/v1/agent/ask", {
+      audit_result: state.view === "crawler" ? activeResult() : (state.draft || state.result),
+      question,
+      provider: $("provider").value,
+      model: $("model").value.trim(),
+    });
+    appendAsk("agent", reply.answer);
+  } catch (error) {
+    appendAsk("agent", i18n.t("error", friendlyError(error.message)));
+  } finally {
+    $("ask-send").disabled = false;
+    input.focus();
+  }
+}
+
+/* ---------- view modes (rendered vs crawler) ---------- */
+
+const BOT_WALL = /pardon our interruption|access denied|are you a robot|attention required|just a moment|verify you are human/i;
+
+function updateViewToggle() {
+  const renderedScore = state.result?.readiness?.before?.score;
+  const staticScore = state.staticResult?.readiness?.before?.score;
+  const buttons = document.querySelectorAll(".view-btn");
+  buttons.forEach((button) => {
+    const isRendered = button.dataset.view === "rendered";
+    const label = i18n.t(isRendered ? "compareRendered" : "compareCrawler");
+    const score = isRendered ? renderedScore : staticScore;
+    button.textContent = score != null ? `${label} · ${score}` : label;
+    button.classList.toggle("is-active", state.view === button.dataset.view);
+  });
+  const note = $("view-note");
+  if (state.staticBlocked) {
+    note.textContent = i18n.t("compareBotWall");
+  } else if (staticScore != null && renderedScore != null) {
+    const gap = Math.abs(renderedScore - staticScore);
+    note.textContent = gap ? i18n.t("compareGap", gap) : i18n.t("compareSame");
+  } else {
+    note.textContent = "";
+  }
+}
+
+async function activateCrawlerView() {
+  if (state.staticBlocked) return;
+  if (state.staticResult) {
+    state.view = "crawler";
+    render();
+    return;
+  }
+  setStatus(i18n.t("statusComparing"));
+  try {
+    const resp = await fetch(state.page.url, { credentials: "omit" });
+    const staticHtml = await resp.text();
+    if (BOT_WALL.test(staticHtml)) {
+      state.staticBlocked = true;
+      updateViewToggle();
+      setStatus("");
+      return;
+    }
+    state.staticResult = localAudit(state.page.url, staticHtml);
+    state.view = "crawler";
+    render();
+    setStatus("");
+  } catch (error) {
+    setStatus(i18n.t("compareError", error.message), true);
+  }
+}
+
+/* ---------- downloads ---------- */
+
+function download(filename, text, type) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([text], { type }));
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/* ---------- wiring ---------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+  i18n.set(i18n.detect());
+  $("lang").value = i18n.lang;
+  loadSettings();
+});
+$("lang").addEventListener("change", () => {
+  i18n.set($("lang").value);
+  if (state.result) render();
+});
+$("settings-toggle").addEventListener("click", () => {
+  $("settings").hidden = !$("settings").hidden;
+});
+$("analyze").addEventListener("click", analyze);
+$("resume").addEventListener("click", resume);
+$("ask-send").addEventListener("click", ask);
+$("ask-input").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") ask();
+});
+$("pillars").addEventListener("click", (event) => {
+  const button = event.target.closest(".pillar");
+  if (!button) return;
+  const detail = button.parentElement.querySelector(".pillar-detail");
+  detail.hidden = !detail.hidden;
+});
+$("platform-scores").addEventListener("click", (event) => {
+  const card = event.target.closest(".platform-card");
+  if (!card) return;
+  state.scorePlatform = card.dataset.platform;
+  const readiness = (activeResult().readiness || {}).before || {};
+  renderScoreBreakdown(readiness);
+  renderPlatformScores(readiness);
+});
+$("copy-jsonld").addEventListener("click", (event) => {
+  navigator.clipboard.writeText($("jsonld").textContent).then(() => {
+    event.target.textContent = i18n.t("copied");
+    setTimeout(() => (event.target.textContent = i18n.t("copy")), 1200);
+  });
+});
+document.querySelectorAll(".view-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (button.dataset.view === "crawler") {
+      activateCrawlerView();
+    } else {
+      state.view = "rendered";
+      render();
+    }
+  });
+});
+$("copy-json").addEventListener("click", async () => {
+  if (!state.result) return;
+  await navigator.clipboard.writeText(JSON.stringify(state.draft || state.result, null, 2));
+  setStatus(i18n.t("statusJsonCopied"));
+});
+$("download-report").addEventListener("click", async () => {
+  if (!state.result) return;
+  try {
+    const payload = await api("/v1/report/html", { audit_result: state.result });
+    download("catalogready-report.html", payload.html, "text/html");
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});

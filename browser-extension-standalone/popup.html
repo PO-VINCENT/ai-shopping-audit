@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CatalogReady</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="mark">CR</span><strong>CatalogReady</strong>
+      <span class="tagline" data-i18n="tagline"></span></div>
+    <div class="header-side">
+      <select id="lang" class="lang-select" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="zh">中文</option>
+      </select>
+      <button class="link" id="settings-toggle" type="button" data-i18n="settings"></button>
+    </div>
+  </header>
+
+  <section id="settings" class="settings" hidden>
+    <label><span data-i18n="serverLabel"></span>
+      <input id="server" type="url" value="http://127.0.0.1:8080" spellcheck="false">
+    </label>
+    <div class="grid2">
+      <label><span data-i18n="providerLabel"></span>
+        <select id="provider">
+          <option value="deterministic" data-i18n="providerOffline"></option>
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Gemini</option>
+          <option value="anthropic">Claude</option>
+          <option value="deepseek">DeepSeek</option>
+        </select>
+      </label>
+      <label><span data-i18n="modelLabel"></span>
+        <input id="model" type="text" data-i18n-placeholder="modelPlaceholder" spellcheck="false">
+      </label>
+    </div>
+    <p class="note"><span data-i18n="settingsNote"></span>
+    <code>uv run catalogready dashboard --no-open</code></p>
+  </section>
+
+  <button class="primary" id="analyze" type="button" data-i18n="analyze"></button>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+
+  <main id="result" hidden>
+    <div id="summary" class="summary"></div>
+
+    <div class="hero">
+      <svg id="dial" viewBox="0 0 132 132" role="img"></svg>
+      <div class="side">
+        <div id="product-title" class="title"></div>
+        <div class="note" data-i18n="sourceRendered"></div>
+        <div id="pillars"></div>
+      </div>
+    </div>
+    <div class="view-toggle" id="view-toggle">
+      <button class="view-btn is-active" data-view="rendered" type="button"></button>
+      <button class="view-btn" data-view="crawler" type="button"></button>
+    </div>
+    <div id="view-note" class="note"></div>
+    <div id="caps"></div>
+    <div id="score-breakdown" class="score-breakdown"></div>
+    <div id="platform-scores" class="platform-scores"></div>
+    <div id="metric-strip" class="metric-strip"></div>
+
+    <details open>
+      <summary><span data-i18n="findings"></span> <span id="findings-count" class="count"></span></summary>
+      <div id="findings"></div>
+    </details>
+
+    <details id="questions-block">
+      <summary><span data-i18n="questions"></span> <span id="questions-count" class="count"></span></summary>
+      <p class="note" data-i18n="questionsNote"></p>
+      <div id="questions"></div>
+      <button class="secondary" id="resume" type="button" hidden data-i18n="resume"></button>
+    </details>
+
+    <details id="fixes-block">
+      <summary data-i18n="fixes"></summary>
+      <div id="changes"></div>
+      <div id="validation"></div>
+      <div id="jsonld-wrap" hidden>
+        <div class="row-between">
+          <span class="note" data-i18n="jsonldTitle"></span>
+          <button class="secondary" id="copy-jsonld" type="button" data-i18n="copy"></button>
+        </div>
+        <pre id="jsonld"></pre>
+      </div>
+    </details>
+
+    <div class="ask-row">
+      <input id="ask-input" type="text" data-i18n-placeholder="askPlaceholder" spellcheck="false">
+      <button class="secondary" id="ask-send" type="button" data-i18n="ask"></button>
+    </div>
+    <div id="ask-log"></div>
+    <p class="note help-line"><span data-i18n="helpNeed"></span>
+      <a href="https://github.com/PO-VINCENT/ai-shopping-audit" target="_blank" rel="noreferrer">GitHub</a> ·
+      <a href="mailto:vincentli802@hotmail.com">vincentli802@hotmail.com</a></p>
+
+    <div class="actions">
+      <button class="secondary" id="download-report" type="button" data-i18n="downloadReport"></button>
+      <button class="secondary" id="copy-json" type="button" data-i18n="copyJson"></button>
+    </div>
+  </main>
+
+  <footer data-i18n="footer"></footer>
+  <script type="module" src="engine-global.mjs"></script>
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

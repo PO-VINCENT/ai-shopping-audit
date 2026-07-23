@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "CatalogReady — AI Readiness Score (standalone)",
+  "version": "0.9.0",
+  "description": "Audit product pages for AI shopping readiness — fully local, no server required. Optional local server only for AI fix drafts.",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "action": {
+    "default_title": "Score this product page",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  }
+}
