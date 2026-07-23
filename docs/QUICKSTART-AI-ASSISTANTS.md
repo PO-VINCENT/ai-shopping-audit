@@ -1,11 +1,16 @@
 # Quick start with ChatGPT, Claude, Gemini, Copilot, and DeepSeek
 
-CatalogReady meets each AI assistant in two ways:
+CatalogReady meets each AI assistant in three ways:
 
 1. **As a tool the assistant can call** (MCP) — your coding agent audits
    product pages itself: *"fetch this page and run the CatalogReady agent
    on its HTML."*
-2. **As the model inside CatalogReady** (BYO key) — the audit stays
+2. **As a skill the assistant loads** ([Agent Skills](https://agentskills.io)
+   `SKILL.md`) — teaches the agent when to audit, which tool to reach
+   for, and the guardrails. One file works in Claude Code, Codex CLI,
+   Gemini CLI, and every other adopter of the open standard; this repo
+   ships it at `skills/catalogready/SKILL.md`.
+3. **As the model inside CatalogReady** (BYO key) — the audit stays
    deterministic; the model powers planning, open-ended chat answers, and
    evidence-grounded listing drafts. See [BYO-KEYS.md](BYO-KEYS.md).
 
@@ -38,6 +43,16 @@ top fixes."*
 
 ChatGPT's web/desktop connectors expect remote MCP servers; for a local
 audit tool, Codex CLI is the supported path today.
+
+**As a skill — Codex CLI.** Inside this repo the checked-in
+`.codex/skills/catalogready` is picked up automatically. For use
+anywhere:
+
+```bash
+mkdir -p ~/.codex/skills/catalogready
+curl -fsSL https://raw.githubusercontent.com/PO-VINCENT/ai-shopping-audit/main/skills/catalogready/SKILL.md \
+  -o ~/.codex/skills/catalogready/SKILL.md
+```
 
 **As the model inside CatalogReady:**
 
@@ -78,6 +93,16 @@ server automatically — Claude Code will prompt to trust it.)
 
 Then: *"Use the catalogready tools to audit the product page HTML I
 paste next, and explain the score caps."*
+
+**As a skill — Claude Code.** Inside this repo the checked-in
+`.claude/skills/catalogready` is picked up automatically. For use
+anywhere:
+
+```bash
+mkdir -p ~/.claude/skills/catalogready
+curl -fsSL https://raw.githubusercontent.com/PO-VINCENT/ai-shopping-audit/main/skills/catalogready/SKILL.md \
+  -o ~/.claude/skills/catalogready/SKILL.md
+```
 
 **As the model inside CatalogReady:** `ANTHROPIC_API_KEY=…` and
 `ANTHROPIC_MODEL=…` in `.env`, then provider **Claude** / `--provider
