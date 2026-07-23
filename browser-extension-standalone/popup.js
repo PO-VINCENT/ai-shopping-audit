@@ -47,6 +47,21 @@ function serverBase() {
   return $("server").value.trim().replace(/\/$/, "");
 }
 
+/* ---------- local deterministic engine (no server) ---------- */
+function localAudit(url, html) {
+  const before = CR.auditProductPage(html, url);
+  let product = {};
+  try { product = (CR.evidence_from_html(url, html) || {}).product || {}; } catch (e) { /* ignore */ }
+  return {
+    readiness: { before },
+    findings: before.findings || [],
+    evidence_record: { product },
+    merchant_questions: [],
+    proposed_changes: [],
+    validation: {},
+  };
+}
+
 async function api(path, body) {
   const response = await fetch(`${serverBase()}${path}`, {
     method: "POST",
@@ -118,17 +133,11 @@ async function analyze() {
   $("result").hidden = true;
   try {
     await saveSettings();
-    try {
-      const health = await fetch(`${serverBase()}/health`);
-      if (!health.ok) throw new Error();
-    } catch (error) {
-      throw new Error(i18n.t("errServer", serverBase()));
-    }
     setStatus(i18n.t("statusReading"));
     state.page = await currentPage();
     state.answers = {};
     setStatus(i18n.t("statusAuditing"));
-    state.result = await runAgent("audit");
+    state.result = localAudit(state.page.url, state.page.html);
     state.draft = null;
     state.staticResult = null;
     state.staticBlocked = false;
@@ -154,7 +163,7 @@ async function resume() {
   button.disabled = true;
   setStatus(i18n.t("statusRerunning"));
   try {
-    state.result = await runAgent("audit");
+    state.result = localAudit(state.page.url, state.page.html);
     state.draft = null;
     state.staticResult = null;
     state.staticBlocked = false;
@@ -502,18 +511,15 @@ async function activateCrawlerView() {
   }
   setStatus(i18n.t("statusComparing"));
   try {
-    const fetched = await api("/v1/fetch", { url: state.page.url });
-    if (BOT_WALL.test(fetched.html)) {
+    const resp = await fetch(state.page.url, { credentials: "omit" });
+    const staticHtml = await resp.text();
+    if (BOT_WALL.test(staticHtml)) {
       state.staticBlocked = true;
       updateViewToggle();
       setStatus("");
       return;
     }
-    state.staticResult = await api("/v1/agent/html", {
-      url: state.page.url,
-      html: fetched.html,
-      mode: "audit",
-    });
+    state.staticResult = localAudit(state.page.url, staticHtml);
     state.view = "crawler";
     render();
     setStatus("");

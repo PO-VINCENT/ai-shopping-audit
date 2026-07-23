@@ -364,13 +364,32 @@ initial HTML.
 
 ## How it compares
 
-| | CatalogReady | Google Rich Results Test | Generic SEO crawlers | AI copy generators |
-|---|---|---|---|---|
-| Validates Product schema syntax | ✓ | ✓ | partial | ✗ |
-| Scores completeness for AI shopping agents | ✓ | ✗ | ✗ | ✗ |
-| Checks marketing claims against evidence | ✓ | ✗ | ✗ | ✗ |
-| Runs offline, no account, no API key | ✓ | ✗ | ✗ | ✗ |
-| Hands you a paste-ready JSON-LD fix | ✓ | ✗ | ✗ | generated, ungrounded |
+**CatalogReady measures whether your product page is _citable_ by an AI
+shopping agent — an input you control — not whether it happened to be _cited_,
+an outcome that changes on every run.** That axis is what separates it from
+each neighbouring category:
+
+| Axis | CatalogReady | Schema validators | GEO/AEO visibility | Feed & PIM tools | AI copy generators | SEO suites |
+|---|---|---|---|---|---|---|
+| Open source, self-hostable, no account/key | ✓ | some | ✗ | ✗ | ✗ | ✗ |
+| Deterministic — every point traces to a cited rule | ✓ | n/a (syntax) | ✗ (probabilistic) | ✗ | ✗ | ✗ (opaque) |
+| Audits the live page an AI agent fetches & renders | ✓ | ✓ (syntax only) | ✗ (asks the LLM) | ✗ (the feed, not the page) | ✗ | partial |
+| Scores product completeness for AI shopping agents | ✓ | ✗ | ✗ | partial (feed-side) | ✗ | ✗ |
+| Checks marketing claims against on-page evidence | ✓ | ✗ | ✗ | ✗ | ✗ (generates them) | ✗ |
+| Scores checkout transactability (UCP/ACP era) | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Paste-ready JSON-LD fix, built only from page evidence | ✓ | ✗ | ✗ | ✗ | generated, ungrounded | ✗ |
+
+Representative tools per column — **Schema validators:** Google Rich Results
+Test, `google/schemarama`, `spatie/schema-org`; **GEO/AEO visibility:**
+Profound, Peec.ai, Otterly, Adobe LLM Optimizer; **Feed & PIM:** Feedonomics,
+DataFeedWatch, Salsify, Akeneo; **AI copy generators:** Describely, Hypotenuse,
+Jasper; **SEO suites:** Screaming Frog, Semrush, Ahrefs.
+
+No tool combines all seven rows: schema validators own row 3 only; GEO/AEO
+platforms measure the *outcome* this score is the *input* for; feed & PIM tools
+work the feed instead of the public page; generators create the very claims
+CatalogReady audits. The transactability row has no competition yet — the
+protocols it checks against (UCP, ACP checkout) are only months old.
 
 ## Bring your own model key (optional)
 

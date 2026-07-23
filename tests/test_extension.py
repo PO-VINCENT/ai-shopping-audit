@@ -4,22 +4,22 @@ import json
 import unittest
 from pathlib import Path
 
-_EXTENSION_DIR = Path(__file__).resolve().parents[1] / "browser-extension"
+_EXTENSION_DIR = Path(__file__).resolve().parents[1] / "browser-extension-standalone"
 
 
 class ExtensionTests(unittest.TestCase):
     def test_manifest_is_mv3_with_minimal_permissions(self) -> None:
         manifest = json.loads((_EXTENSION_DIR / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["manifest_version"], 3)
-        self.assertEqual(manifest["version"], "0.8.1")
+        self.assertEqual(manifest["version"], "0.9.0")
         self.assertLessEqual(len(manifest["description"]), 132)
         self.assertEqual(set(manifest["permissions"]), {"activeTab", "scripting", "storage"})
-        # Host permissions must stay local-only: the page HTML never leaves the machine.
-        for host in manifest["host_permissions"]:
-            self.assertTrue(
-                host.startswith(("http://127.0.0.1", "http://localhost")),
-                f"non-local host permission: {host}",
-            )
+        # Broad host permissions exist only so the crawler view can refetch the
+        # current page's own URL (inbound GET, credentials omitted); the page
+        # HTML still never leaves the machine.
+        self.assertEqual(set(manifest["host_permissions"]), {"https://*/*", "http://*/*"})
+        popup = (_EXTENSION_DIR / "popup.js").read_text(encoding="utf-8")
+        self.assertIn('credentials: "omit"', popup)
 
     def test_popup_calls_no_external_origins(self) -> None:
         for filename in ("popup.html", "popup.js", "popup.css", "i18n.js"):
